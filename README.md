@@ -9,28 +9,30 @@ otevřít v prohlížeči.
 ```
 index.html                # Rozcestník – seznam všech kvízů
 kvizy/                     # Sem patří jednotlivé kvízy
-  _sablona.html           # Prázdná šablona (matematika s klávesnicí)
+  _sablona.html                      # Šablona: matematika s klávesnicí (pro děti)
+  _sablona-hospodsky-kviz.html       # Šablona: hospodský kvíz se soutěžními režimy
   laura-stitch-matematika.html
-  eva-jirka-hospodsky-kviz-01.html   # Hospodský kvíz (výběr z odpovědí, se zvukem)
+  eva-jirka-hospodsky-kviz-01.html   # Hospodský kvíz – 1. rozehřívací díl (jeden průchod)
 ```
 
 ## Dva typy kvízů
 
 - **Matematika s klávesnicí** (`_sablona.html`) – dítě píše výsledek na
   číselné klávesnici, série s rostoucí obtížností.
-- **Hospodský kvíz** (`eva-jirka-hospodsky-kviz-01.html`) – výběr z odpovědí
-  A/B/C/D, okruhy, zvuk při správné odpovědi. Nový víkendový díl uděláš tak,
-  že soubor zkopíruješ, přejmenuješ na `...-02.html` a nahoře ve `<script>`
-  v bloku **① OTÁZKY** přepíšeš okruhy a otázky.
-
-  Má tři režimy:
-  - **Hrát dohromady** – jedno skóre pro partu u stolu.
-  - **Soupeřit v týmech** – 2–4 týmy se střídají na jednom mobilu, průběžné
-    pořadí a vyhlášení vítěze.
-  - **Závod na dvou mobilech** – každý tým hraje na svém telefonu. Hra začne
-    až po zadání **startovního kódu**, který nastavíš v bloku **① OTÁZKY**
-    (`startovniKod`) a pošleš oběma týmům ve smluvenou dobu (klidně
-    naplánovanou SMS). Stejné otázky, běží čas; na konci se porovná skóre.
+- **Hospodský kvíz** – výběr z odpovědí A/B/C/D, okruhy, zvuk při správné
+  odpovědi. Nový díl uděláš tak, že vhodný soubor zkopíruješ, přejmenuješ
+  a nahoře ve `<script>` v bloku **① OTÁZKY** přepíšeš okruhy a otázky.
+  Existují dvě verze:
+  - `eva-jirka-hospodsky-kviz-01.html` – **rozehřívací díl**: jeden prostý
+    průchod s jedním skóre, bez soutěžení.
+  - `_sablona-hospodsky-kviz.html` – **soutěžní šablona** se třemi režimy:
+    - *Hrát dohromady* – jedno skóre pro partu u stolu.
+    - *Soupeřit v týmech* – 2–4 týmy se střídají na jednom mobilu, průběžné
+      pořadí a vyhlášení vítěze.
+    - *Závod na dvou mobilech* – každý tým hraje na svém telefonu. Hra začne
+      až po zadání **startovního kódu** (`startovniKod` v bloku ① OTÁZKY),
+      který pošleš oběma týmům ve smluvenou dobu (klidně naplánovanou SMS).
+      Stejné otázky, běží čas; na konci se porovná skóre.
 
 ## Jak vyrobit nový kvíz ze šablony
 
