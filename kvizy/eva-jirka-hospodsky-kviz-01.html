@@ -357,6 +357,35 @@
             text-transform: uppercase;
         }
         .kod-chyba { color: var(--cervena); font-weight: bold; text-align: center; margin-bottom: 10px; }
+
+        /* --- Přehled okruhů na úvodu --- */
+        .prehled-okruhu {
+            background: #fdeccb;
+            border-radius: 14px;
+            padding: 12px 16px;
+            margin: 4px 0 20px;
+            text-align: left;
+        }
+        .prehled-nadpis {
+            font-weight: bold;
+            text-align: center;
+            color: var(--tmava);
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        .prehled-radek {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 7px 0;
+            font-size: 17px;
+            color: var(--tmava);
+            border-top: 1px solid #e6cfa0;
+        }
+        .prehled-radek:first-of-type { border-top: none; }
+        .prehled-emoji { font-size: 22px; flex: 0 0 26px; text-align: center; }
+        .prehled-nazev { flex: 1; }
+        .prehled-pocet { font-weight: bold; color: #8a6a4a; font-size: 14px; white-space: nowrap; }
     </style>
 </head>
 <body>
@@ -374,6 +403,7 @@
             <h1 id="uvod-titulek">Hospodský kvíz</h1>
             <div class="podtitulek" id="uvod-podtitulek">pro Evu a Jirku – díl 1</div>
             <div class="uvod-text" id="uvod-text"></div>
+            <div class="prehled-okruhu" id="prehled-okruhu"></div>
             <button class="btn" onclick="spustSolo()">Hrát dohromady 🍻</button>
             <button class="btn btn-sekundarni" onclick="ukazNastaveniTymu()">Soupeřit v týmech ⚔️</button>
             <button class="btn btn-sekundarni" onclick="ukazZavod()">Závod na dvou mobilech 🏁</button>
@@ -641,6 +671,17 @@
     document.getElementById('uvod-titulek').textContent = KONFIG.titulek;
     document.getElementById('uvod-podtitulek').textContent = KONFIG.podtitulek;
     document.getElementById('uvod-text').textContent = KONFIG.uvod;
+
+    // Přehled okruhů na úvodní obrazovce (generuje se sám z otázek)
+    document.getElementById('prehled-okruhu').innerHTML =
+        '<div class="prehled-nadpis">Co vás čeká – ' + OKRUHY.length + ' okruhů:</div>' +
+        OKRUHY.map(function(o){
+            return '<div class="prehled-radek">' +
+                   '<span class="prehled-emoji">' + o.emoji + '</span>' +
+                   '<span class="prehled-nazev">' + escapeHtml(o.nazev) + '</span>' +
+                   '<span class="prehled-pocet">' + o.otazky.length + ' ot.</span>' +
+                   '</div>';
+        }).join('');
 
     function escapeHtml(s) {
         return String(s).replace(/[&<>"]/g, function(c){
