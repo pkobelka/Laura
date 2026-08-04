@@ -23,6 +23,15 @@ kvizy/                     # Sem patří jednotlivé kvízy
   že soubor zkopíruješ, přejmenuješ na `...-02.html` a nahoře ve `<script>`
   v bloku **① OTÁZKY** přepíšeš okruhy a otázky.
 
+  Má tři režimy:
+  - **Hrát dohromady** – jedno skóre pro partu u stolu.
+  - **Soupeřit v týmech** – 2–4 týmy se střídají na jednom mobilu, průběžné
+    pořadí a vyhlášení vítěze.
+  - **Závod na dvou mobilech** – každý tým hraje na svém telefonu. Hra začne
+    až po zadání **startovního kódu**, který nastavíš v bloku **① OTÁZKY**
+    (`startovniKod`) a pošleš oběma týmům ve smluvenou dobu (klidně
+    naplánovanou SMS). Stejné otázky, běží čas; na konci se porovná skóre.
+
 ## Jak vyrobit nový kvíz ze šablony
 
 1. Zkopíruj `kvizy/_sablona.html` a pojmenuj kopii podle vzoru

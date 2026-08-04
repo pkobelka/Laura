@@ -320,6 +320,43 @@
         .tab-radek:first-of-type { border-top: none; }
         .tab-tym { display: flex; align-items: center; gap: 9px; }
         .tab-body { font-weight: bold; }
+
+        /* --- Závod na povel --- */
+        .zavod-stav {
+            font-weight: bold;
+            font-size: 16px;
+            background: #fdeccb;
+            border: 2px solid var(--amber);
+            border-radius: 10px;
+            padding: 6px 12px;
+            color: var(--tmava);
+            white-space: nowrap;
+        }
+        #zona-odpocet { text-align: center; padding: 46px 0; }
+        .odpocet-cislo {
+            font-size: 110px;
+            font-weight: bold;
+            color: var(--amber);
+            line-height: 1.1;
+        }
+        @keyframes odpocet-puls {
+            0%   { transform: scale(0.4); opacity: 0; }
+            45%  { transform: scale(1.15); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .odpocet-popis { font-size: 20px; color: #7a5a3a; margin-top: 8px; }
+        .kod-input {
+            width: 100%;
+            font-size: 22px;
+            text-align: center;
+            padding: 13px;
+            border: 3px solid var(--amber);
+            border-radius: 12px;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .kod-chyba { color: var(--cervena); font-weight: bold; text-align: center; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -327,6 +364,7 @@
         <div class="horni-lista">
             <div class="skore-box" id="skore-box">🍺 Body: <span id="skore">0</span> / <span id="skore-max">0</span></div>
             <div class="tym-stav hidden" id="tym-stav"></div>
+            <div class="zavod-stav hidden" id="zavod-stav"></div>
             <button class="mute-btn" id="mute-btn" onclick="toggleMute()" title="Zapnout/vypnout zvuk">🔊</button>
         </div>
 
@@ -338,6 +376,29 @@
             <div class="uvod-text" id="uvod-text"></div>
             <button class="btn" onclick="spustSolo()">Hrát dohromady 🍻</button>
             <button class="btn btn-sekundarni" onclick="ukazNastaveniTymu()">Soupeřit v týmech ⚔️</button>
+            <button class="btn btn-sekundarni" onclick="ukazZavod()">Závod na dvou mobilech 🏁</button>
+        </div>
+
+        <!-- ZÁVOD NA POVEL -->
+        <div id="zona-zavod" class="hidden">
+            <div class="velky-emoji">🏁</div>
+            <div class="tym-nadpis">Závod na povel</div>
+            <div class="uvod-text">
+                Oba týmy hrají každý na svém mobilu. Hra začne, až zadáte
+                <strong>startovní kód</strong>, který vám ve smluvenou dobu pošle Peťa.
+                Pak se spustí odpočet <strong>3 – 2 – 1</strong> a jedete naráz –
+                stejné otázky, běží čas. Vyhrává víc bodů, při shodě rozhoduje čas.
+            </div>
+            <input type="text" class="kod-input" id="kod-input" placeholder="Startovní kód" autocomplete="off">
+            <div class="kod-chyba hidden" id="kod-chyba">To není správný kód. Zkuste to znovu.</div>
+            <button class="btn" onclick="zkusStart()">Odstartovat 🏁</button>
+            <button class="btn btn-sekundarni" onclick="zpetNaUvod()">← Zpět</button>
+        </div>
+
+        <!-- ODPOČET -->
+        <div id="zona-odpocet" class="hidden">
+            <div class="odpocet-cislo" id="odpocet-cislo">3</div>
+            <div class="odpocet-popis">Připravit se…</div>
         </div>
 
         <!-- NASTAVENÍ TÝMŮ -->
@@ -386,6 +447,7 @@
                 </div>
             </div>
             <div class="tabulka hidden" id="souhrn-tymy"></div>
+            <div class="tabulka hidden" id="souhrn-zavod"></div>
             <button class="btn" onclick="hrajZnovu()">Hrát znovu 🔄</button>
         </div>
     </div>
@@ -408,9 +470,14 @@
     ===================================================================== */
     const KONFIG = {
         titulek: "Hospodský kvíz",
-        podtitulek: "pro Evu a Jirku – díl 1",
+        podtitulek: "pro partu u stolu i na dálku",
         uvod: "Nalijte si, sedněte ke stolu a pusťte se do toho společně s přáteli. " +
               "Pět okruhů, spousta otázek – a za správnou odpověď zacinká odměna! 🔔",
+
+        // TAJNÝ STARTOVNÍ KÓD pro režim „Závod na dvou mobilech".
+        // Bez něj hra nezačne. Pošli ho oběma týmům až ve chvíli, kdy mají
+        // začít – tím odstartuješ souboj. Klidně ho před každou hrou změň.
+        startovniKod: "NAZDRAVI",
     };
 
     const OKRUHY = [
@@ -554,11 +621,14 @@
     var celkemOtazek = OKRUHY.reduce(function(s, o){ return s + o.otazky.length; }, 0);
     var zodpovezeno = false;
 
-    // Týmový režim
-    var rezim = 'solo';      // 'solo' nebo 'tymy'
+    // Režim hry: 'solo', 'tymy' nebo 'zavod'
+    var rezim = 'solo';
     var tymy = [];           // [{nazev, barva, emoji, body}]
     var aktualniTym = 0;
     var pocetTymu = 2;
+    // Závod na povel
+    var zavodStart = 0;
+    var zavodTimer = null;
     var BARVY = [
         { emoji: '🔴', barva: '#c0392b', nazev: 'Červení' },
         { emoji: '🔵', barva: '#2c6fbf', nazev: 'Modří' },
@@ -579,21 +649,110 @@
     }
 
     function ukazZonu(id) {
-        ['zona-uvod','zona-tymy','zona-okruh','zona-otazka','zona-souhrn'].forEach(function(z){
+        ['zona-uvod','zona-tymy','zona-zavod','zona-odpocet','zona-okruh','zona-otazka','zona-souhrn'].forEach(function(z){
             document.getElementById(z).classList.add('hidden');
         });
         document.getElementById(id).classList.remove('hidden');
+    }
+
+    // Schová všechny ukazatele skóre v horní liště
+    function skryjStavy() {
+        document.getElementById('skore-box').classList.add('hidden');
+        document.getElementById('tym-stav').classList.add('hidden');
+        document.getElementById('zavod-stav').classList.add('hidden');
+        if (zavodTimer) { clearInterval(zavodTimer); zavodTimer = null; }
     }
 
     /* ----- Režim: hrát dohromady ----- */
     function spustSolo() {
         rezim = 'solo';
         zvukInit();
+        skryjStavy();
         document.getElementById('skore-box').classList.remove('hidden');
-        document.getElementById('tym-stav').classList.add('hidden');
         okruhIndex = 0; otazkaIndex = 0; skore = 0;
         document.getElementById('skore').textContent = '0';
         ukazOkruh();
+    }
+
+    /* ----- Režim: závod na povel (dva mobily) ----- */
+    function ukazZavod() {
+        zvukInit();
+        document.getElementById('kod-input').value = '';
+        document.getElementById('kod-chyba').classList.add('hidden');
+        ukazZonu('zona-zavod');
+    }
+
+    // Kontrola startovního kódu – bez správného kódu hra nezačne
+    function zkusStart() {
+        var zadano = (document.getElementById('kod-input').value || '').trim();
+        var spravny = String(KONFIG.startovniKod || '').trim();
+        if (zadano !== '' && zadano.toLowerCase() === spravny.toLowerCase()) {
+            document.getElementById('kod-chyba').classList.add('hidden');
+            spustOdpocet();
+        } else {
+            document.getElementById('kod-chyba').classList.remove('hidden');
+            zvukSpatne();
+        }
+    }
+
+    function spustOdpocet() {
+        zvukResume();
+        ukazZonu('zona-odpocet');
+        var el = document.getElementById('odpocet-cislo');
+        var popis = document.querySelector('#zona-odpocet .odpocet-popis');
+        var kroky = ['3', '2', '1', 'TEĎ!'];
+        var i = 0;
+        function zobraz() {
+            el.textContent = kroky[i];
+            popis.textContent = (i === kroky.length - 1) ? 'Jedeme!' : 'Připravit se…';
+            // restart animace
+            el.style.animation = 'none';
+            void el.offsetWidth;
+            el.style.animation = 'odpocet-puls 0.85s ease';
+            pip(i === kroky.length - 1);
+        }
+        zobraz();
+        var t = setInterval(function(){
+            i++;
+            if (i < kroky.length) {
+                zobraz();
+            } else {
+                clearInterval(t);
+                startZavod();
+            }
+        }, 900);
+    }
+
+    function startZavod() {
+        rezim = 'zavod';
+        skryjStavy();
+        document.getElementById('zavod-stav').classList.remove('hidden');
+        okruhIndex = 0; otazkaIndex = 0; skore = 0;
+        zavodStart = Date.now();
+        zavodTimer = setInterval(aktualizujCas, 200);
+        aktualizujCas();
+        ukazOtazku();
+    }
+
+    function aktualizujCas() {
+        var ms = Date.now() - zavodStart;
+        document.getElementById('zavod-stav').innerHTML = '⏱ ' + formatCas(ms) + ' &nbsp;·&nbsp; ✅ ' + skore;
+    }
+
+    function formatCas(ms) {
+        var s = Math.floor(ms / 1000);
+        var m = Math.floor(s / 60);
+        s = s % 60;
+        return m + ':' + (s < 10 ? '0' : '') + s;
+    }
+
+    // Kontrolní kód sady otázek – na stejném souboru vyjde na obou mobilech stejně
+    function kontrolniKod() {
+        var s = '';
+        OKRUHY.forEach(function(o){ o.otazky.forEach(function(q){ s += q.q + q.spravne; }); });
+        var h = 0;
+        for (var i = 0; i < s.length; i++) { h = (h * 31 + s.charCodeAt(i)) >>> 0; }
+        return (h % 9000) + 1000;
     }
 
     /* ----- Režim: souboj týmů ----- */
@@ -647,8 +806,8 @@
         }
         rezim = 'tymy';
         zvukResume();
+        skryjStavy();
         okruhIndex = 0; otazkaIndex = 0; aktualniTym = 0;
-        document.getElementById('skore-box').classList.add('hidden');
         document.getElementById('tym-stav').classList.remove('hidden');
         renderTymStav();
         ukazOkruh();
@@ -749,6 +908,9 @@
             if (rezim === 'tymy') {
                 tymy[aktualniTym].body++;
                 renderTymStav();
+            } else if (rezim === 'zavod') {
+                skore++;
+                aktualizujCas();
             } else {
                 skore++;
                 document.getElementById('skore').textContent = skore;
@@ -783,7 +945,9 @@
         } else {
             okruhIndex++;
             if (okruhIndex < OKRUHY.length) {
-                ukazOkruh();
+                // v závodu jedeme plynule bez mezikola, jinak ukážeme přehled okruhu
+                if (rezim === 'zavod') { otazkaIndex = 0; ukazOtazku(); }
+                else { ukazOkruh(); }
             } else {
                 ukazSouhrn();
             }
@@ -793,11 +957,30 @@
     function ukazSouhrn() {
         var soloBox = document.getElementById('souhrn-solo');
         var tymyBox = document.getElementById('souhrn-tymy');
+        var zavodBox = document.getElementById('souhrn-zavod');
         var emojiEl = document.getElementById('souhrn-emoji');
         var titulEl = document.getElementById('souhrn-titul');
+        soloBox.classList.add('hidden');
+        tymyBox.classList.add('hidden');
+        zavodBox.classList.add('hidden');
+
+        if (rezim === 'zavod') {
+            if (zavodTimer) { clearInterval(zavodTimer); zavodTimer = null; }
+            var ms = Date.now() - zavodStart;
+            zavodBox.classList.remove('hidden');
+            zavodBox.innerHTML =
+                '<div class="tab-nadpis">Tvůj výsledek</div>' +
+                '<div class="tab-radek"><span class="tab-tym">✅ Body</span><span class="tab-body">' + skore + ' / ' + celkemOtazek + '</span></div>' +
+                '<div class="tab-radek"><span class="tab-tym">⏱ Čas</span><span class="tab-body">' + formatCas(ms) + '</span></div>' +
+                '<div class="tab-radek"><span class="tab-tym">🔑 Kód sady</span><span class="tab-body">' + kontrolniKod() + '</span></div>';
+            emojiEl.textContent = '🏁';
+            titulEl.innerHTML = 'Doběhnuto! Porovnej s druhým mobilem –<br>víc bodů vyhrává, při shodě rozhoduje čas.';
+            zvukFanfara();
+            ukazZonu('zona-souhrn');
+            return;
+        }
 
         if (rezim === 'tymy') {
-            soloBox.classList.add('hidden');
             tymyBox.classList.remove('hidden');
             tymyBox.innerHTML = tabulkaHTML('Konečné pořadí', true);
 
@@ -830,8 +1013,8 @@
     }
 
     function hrajZnovu() {
+        skryjStavy();
         document.getElementById('skore-box').classList.remove('hidden');
-        document.getElementById('tym-stav').classList.add('hidden');
         document.getElementById('skore').textContent = '0';
         ukazZonu('zona-uvod');
     }
@@ -886,6 +1069,11 @@
         ton(659.25, 0.14, 0.16, 'triangle', 0.3);
         ton(783.99, 0.28, 0.16, 'triangle', 0.3);
         ton(1046.50, 0.42, 0.45, 'triangle', 0.32);
+    }
+    function pip(finale) {
+        // pípnutí odpočtu; poslední (start) je vyšší a delší
+        if (finale) ton(880, 0, 0.28, 'square', 0.3);
+        else ton(440, 0, 0.15, 'square', 0.25);
     }
     </script>
 </body>
