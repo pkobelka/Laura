@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Titulek v záložce prohlížeče – klidně změň -->
+    <title>Kvíz se strejdou Peťou</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        .game-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+            border: 4px solid #1f5f8b;
+            max-height: 95vh;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            color: #1f5f8b;
+            margin-top: 0;
+            margin-bottom: 5px;
+            font-size: 24px;
+        }
+
+        .welcome-box, .summary-box {
+            background-color: #fff;
+            padding: 5px;
+        }
+
+        .avatar-uvod {
+            font-size: 60px;
+            margin: 10px 0;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .welcome-text {
+            font-size: 17px;
+            line-height: 1.4;
+            color: #333;
+            margin: 15px 5px;
+            font-weight: 500;
+        }
+
+        .hint-container {
+            margin: 10px 0;
+            min-height: 40px;
+        }
+
+        .btn-hint-trigger {
+            background-color: #e2f0fd;
+            color: #1f5f8b;
+            border: 2px dashed #1f5f8b;
+            padding: 8px 12px;
+            font-size: 15px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.2s;
+        }
+
+        .strejda-box {
+            display: none;
+            background-color: #fff9db;
+            border-left: 5px solid #f59f00;
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 15px;
+            text-align: left;
+            line-height: 1.4;
+            color: #664d03;
+            font-weight: 500;
+            margin-top: 8px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .avatar-hra {
+            font-size: 45px;
+            margin: 5px 0;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 15px;
+            font-weight: bold;
+            font-size: 14px;
+            background-color: #f0f7fc;
+            padding: 8px;
+            border-radius: 10px;
+            border: 1px dashed #1f5f8b;
+        }
+
+        .score { color: #2e7d32; }
+        .progress { color: #1f5f8b; }
+        .series-info { color: #7b1fa2; }
+
+        .problem-box {
+            font-size: 30px;
+            font-weight: bold;
+            color: #333;
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 15px;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+            letter-spacing: 1px;
+        }
+
+        .answer-display {
+            font-size: 30px;
+            text-align: center;
+            width: 220px;
+            padding: 6px;
+            border: 3px solid #1f5f8b;
+            border-radius: 30px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            color: #1f5f8b;
+            background-color: #fff;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .answer-display.status-correct {
+            border-color: #4CAF50;
+            color: #2e7d32;
+            animation: blink-green 0.4s ease 2;
+            background-color: #e8f5e9;
+        }
+
+        @keyframes blink-green {
+            0% { background-color: #fff; transform: scale(1); }
+            50% { background-color: #a5d6a7; transform: scale(1.03); box-shadow: 0 0 10px #4CAF50; }
+            100% { background-color: #e8f5e9; transform: scale(1); }
+        }
+
+        .answer-display.status-incorrect {
+            background-color: #ffebee;
+            border-color: #f44336;
+            color: #c62828;
+        }
+
+        .numeric-keyboard {
+            display: inline-block;
+            background: #e1edf5;
+            padding: 10px;
+            border-radius: 15px;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .keyboard-row {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 8px;
+        }
+
+        .keyboard-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .keyboard-row button {
+            width: 28%;
+            height: 55px;
+            margin: 0 2%;
+            font-size: 24px;
+            font-weight: bold;
+            border: none;
+            border-radius: 12px;
+            background-color: #ffffff;
+            color: #333;
+            cursor: pointer;
+            box-shadow: 0 3px #b8cedc;
+            transition: all 0.1s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .keyboard-row button:active {
+            transform: translateY(3px);
+            box-shadow: 0 0px #b8cedc;
+            background-color: #f0f0f0;
+        }
+
+        .keyboard-row button.btn-delete {
+            background-color: #ff9800;
+            color: white;
+            box-shadow: 0 3px #c67600;
+        }
+
+        .keyboard-row button.btn-enter {
+            background-color: #4CAF50;
+            color: white;
+            box-shadow: 0 3px #388E3C;
+        }
+
+        .feedback {
+            margin-top: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            min-height: 45px;
+            line-height: 1.3;
+            padding: 0 5px;
+        }
+
+        .correct { color: #4CAF50; font-size: 20px; }
+        .incorrect { color: #d32f2f; }
+
+        .grade {
+            font-size: 70px;
+            color: #d32f2f;
+            font-weight: bold;
+            margin: 5px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .btn-action {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px #388E3C;
+            margin-top: 10px;
+            transition: all 0.1s;
+            touch-action: manipulation;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <div id="welcome-zone" class="welcome-box">
+            <h1 id="welcome-title">Ahoj!</h1>
+            <div class="avatar-uvod" id="welcome-avatar">👋</div>
+            <div class="welcome-text" id="welcome-text"></div>
+            <button class="btn-action" id="start-btn" onclick="startGame()">Jdu na to, strejdo! 🎮</button>
+        </div>
+
+        <div id="game-zone" style="display: none;">
+            <div class="hint-container">
+                <button class="btn-hint-trigger" id="hint-button" onclick="toggleHint()">Chceš, aby ti strejda Peťa napověděl? 💡</button>
+                <div class="strejda-box" id="strejda-hint"></div>
+            </div>
+
+            <div class="avatar-hra" id="game-avatar">👍</div>
+
+            <div class="stats">
+                <div class="series-info">Série: <span id="series-val">1</span> / 5 🧩</div>
+                <div class="score">Celkem správně: <span id="score-val">0</span></div>
+                <div class="progress">Příklad: <span id="progress-val">1</span> / 10</div>
+            </div>
+
+            <div class="problem-box" id="problem">...</div>
+
+            <input type="text" class="answer-display" id="answer" readonly placeholder="?">
+
+            <div class="numeric-keyboard">
+                <div class="keyboard-row">
+                    <button onclick="pressKey('1')">1</button>
+                    <button onclick="pressKey('2')">2</button>
+                    <button onclick="pressKey('3')">3</button>
+                </div>
+                <div class="keyboard-row">
+                    <button onclick="pressKey('4')">4</button>
+                    <button onclick="pressKey('5')">5</button>
+                    <button onclick="pressKey('6')">6</button>
+                </div>
+                <div class="keyboard-row">
+                    <button onclick="pressKey('7')">7</button>
+                    <button onclick="pressKey('8')">8</button>
+                    <button onclick="pressKey('9')">9</button>
+                </div>
+                <div class="keyboard-row">
+                    <button class="btn-delete" onclick="pressKey('DEL')">⌫</button>
+                    <button onclick="pressKey('0')">0</button>
+                    <button class="btn-enter" onclick="pressKey('ENTER')">✔</button>
+                </div>
+            </div>
+
+            <div class="feedback" id="feedback"></div>
+        </div>
+
+        <div id="summary-zone" class="summary-box" style="display: none;">
+            <h2 id="summary-title">🎉 Skvělá práce! 🎉</h2>
+            <div class="avatar-hra" id="summary-avatar">🥳👑💖</div>
+            <p style="font-size: 18px; line-height: 1.4; margin: 12px 0; padding: 0 5px;" id="summary-text"></p>
+
+            <div style="background-color: #f0f7fc; padding: 12px; border-radius: 15px; font-size: 16px; margin: 15px 0;">
+                <div>V této sérii správně: <strong style="color: #2e7d32;" id="final-correct">0</strong> / 10</div>
+                <div>Chybiček: <strong style="color: #c62828;" id="final-wrong">0</strong></div>
+            </div>
+
+            <p style="font-size: 16px; margin-bottom: 3px;">Tvoje známka za tuto sérii:</p>
+            <div class="grade" id="final-grade">1*</div>
+
+            <p style="font-size: 18px; font-weight: bold; color: #1f5f8b; margin-top: 20px;" id="restart-question">Chtěl/a bys další takové příklady?</p>
+            <button class="btn-action" id="action-button" onclick="nextSeries()">Ano, chci další sérii! 🎮</button>
+        </div>
+    </div>
+
+    <script>
+    /* =====================================================================
+       ①  NASTAVENÍ – TADY MĚŇ PRO KAŽDÉ DÍTĚ
+       ---------------------------------------------------------------------
+       Stačí přepsat hodnoty v uvozovkách. Nic jiného níže měnit nemusíš.
+    ===================================================================== */
+    const KVIZ = {
+        // Rod dítěte kvůli české gramatice: "holka" nebo "kluk"
+        // (řídí koncovky: šikovná/šikovný, zvládla/zvládl, uklikla/uklikl ...)
+        rod: "holka",
+
+        // Oslovení (5. pád) – "Ahoj Laurinko!", "Ahoj Pavle!"
+        jmeno5pad: "Laurinko",
+
+        // Kdo kvíz připravil (objeví se v úvodním textu)
+        strejda: "strejda Peťa Kobelka",
+        // Krátká verze do nápověd – "Strejda Peťa říká: ..."
+        strejdaKratce: "Strejda Peťa",
+
+        // Emoji avataři pro jednotlivé situace (klidně změň podle tématu)
+        avatarUvod:    "👽💖✨",     // úvodní obrazovka
+        avatarHra:     "👽👍",       // během hraní
+        avatarSpravne: "👽🥳💖",     // po správné odpovědi
+        avatarPremysli:"👽🤔",       // po chybě
+        avatarKonec:   "👽👑🥇🥳🎉⭐", // po dohrání celé hry
+
+        // Úvodní text (HTML povoleno, <br> = odřádkování)
+        uvodniText:
+            "Když budeš mít chvilku času a budeš si chtít trošku procvičit hlavičku, " +
+            "STREJDA ti připravil pár zábavných logických příkladů." +
+            "<br><br>" +
+            "Začneme úplně jednoduše a postupně budeme čísla zvětšovat. Neboj se, zvládneš to skvěle!",
+    };
+
+    /* =====================================================================
+       ②  KOLIK PŘÍKLADŮ A SÉRIÍ
+    ===================================================================== */
+    const problemsPerSeries = 10; // příkladů v jedné sérii
+    const totalSeriesCount  = 5;  // kolik sérií (obtížnost roste)
+
+    /* =====================================================================
+       ③  ENGINE – normálně tu nic měnit nemusíš.
+           Otázky se generují ve funkci generateProblem() níže (bod ④).
+    ===================================================================== */
+
+    // Pomůcka pro rod: R("ženská verze", "mužská verze")
+    const jeHolka = KVIZ.rod === "holka";
+    function R(z, m) { return jeHolka ? z : m; }
+
+    var currentAnswer = 0;
+    var rawInputDigits = "";
+    var totalCorrectCount = 0;
+    var seriesCorrectCount = 0;
+    var seriesWrongCount = 0;
+
+    var currentProblemNumber = 1;
+    var currentSeriesNumber = 1;
+    var isWaitingForNext = false;
+
+    var problemEl = document.getElementById('problem');
+    var answerEl = document.getElementById('answer');
+    var feedbackEl = document.getElementById('feedback');
+    var scoreEl = document.getElementById('score-val');
+    var progressEl = document.getElementById('progress-val');
+    var seriesEl = document.getElementById('series-val');
+    var hintEl = document.getElementById('strejda-hint');
+    var avatarEl = document.getElementById('game-avatar');
+
+    var welcomeZone = document.getElementById('welcome-zone');
+    var gameZone = document.getElementById('game-zone');
+    var summaryZone = document.getElementById('summary-zone');
+
+    // Naplní úvodní obrazovku podle nastavení výše
+    (function applyConfig() {
+        document.getElementById('welcome-title').textContent = "Ahoj " + KVIZ.jmeno5pad + "! 💕";
+        document.getElementById('welcome-avatar').textContent = KVIZ.avatarUvod;
+        document.getElementById('game-avatar').textContent = KVIZ.avatarHra;
+        document.getElementById('summary-avatar').textContent = KVIZ.avatarHra;
+        document.getElementById('welcome-text').innerHTML =
+            KVIZ.uvodniText.replace(/STREJDA/g, KVIZ.strejda);
+        document.getElementById('restart-question').textContent =
+            R("Chtěla bys další takové příklady?", "Chtěl bys další takové příklady?");
+    })();
+
+    function startGame() {
+        welcomeZone.style.display = 'none';
+        gameZone.style.display = 'block';
+        generateProblem();
+    }
+
+    function toggleHint() {
+        hintEl.style.display = (hintEl.style.display === 'block') ? 'none' : 'block';
+    }
+
+    function formatNumberWithSpaces(num) {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    }
+
+    // Vytvoří "základní" číslo, které se v pozdějších sériích zvětšuje.
+    // endsWith = poslední číslice (aby počítání na konci dávalo smysl).
+    function generateBaseNumber(endsWith) {
+        var min, max;
+        if (currentSeriesNumber === 1) {
+            return endsWith;
+        } else if (currentSeriesNumber === 2) {
+            min = 1; max = 9;
+        } else if (currentSeriesNumber === 3) {
+            min = 10; max = 99;
+        } else if (currentSeriesNumber === 4) {
+            min = 100; max = 999;
+        } else {
+            var lengths = [1000, 10000];
+            var base = lengths[Math.floor(Math.random() * lengths.length)];
+            var prefix = Math.floor(Math.random() * (base * 9)) + base;
+            return prefix * 10 + endsWith;
+        }
+        var prefix = Math.floor(Math.random() * (max - min + 1)) + min;
+        return prefix * 10 + endsWith;
+    }
+
+    /* =====================================================================
+       ④  OTÁZKY – tady se rozhoduje, jaký příklad se ukáže.
+           Chceš jiný typ počítání? Uprav / přidej větve if níže.
+           Vždy nastav: currentAnswer (správný výsledek),
+                        problemEl.textContent (co se ukáže),
+                        hintEl.innerHTML (nápověda strejdy).
+    ===================================================================== */
+    function generateProblem() {
+        isWaitingForNext = false;
+        rawInputDigits = "";
+        answerEl.value = '';
+        answerEl.className = 'answer-display';
+        feedbackEl.textContent = '';
+        avatarEl.textContent = KVIZ.avatarHra;
+        hintEl.style.display = 'none';
+
+        progressEl.textContent = currentProblemNumber;
+        seriesEl.textContent = currentSeriesNumber;
+
+        var S = KVIZ.strejdaKratce; // zkratka do nápověd
+
+        var type = Math.floor(Math.random() * 6);
+        var endsWith = Math.floor(Math.random() * 5) + 3;
+        var bigNumber = generateBaseNumber(endsWith);
+        var formattedBigNumber = formatNumberWithSpaces(bigNumber);
+
+        if (type === 0) {
+            currentAnswer = bigNumber;
+            problemEl.textContent = formattedBigNumber + " + 0 =";
+            hintEl.innerHTML = "<strong>" + S + " říká:</strong> Když máš v pokladničce naspořeno spoustu peněz a strejda ti k nim nepřidá vůbec nic (nulu), tak se nic nezmění. To obří číslo jenom celé opiš, v pokladničce máš pořád stejně!";
+        }
+        else if (type === 1) {
+            currentAnswer = bigNumber;
+            problemEl.textContent = formattedBigNumber + " - 0 =";
+            hintEl.innerHTML = "<strong>" + S + " říká:</strong> Představ si obří hromadu brambor ve sklepě. Když z ní strejda neodebere vůbec nic (nulu), hromada zůstane úplně stejně veliká. Celé to velké číslo prostě opiš!";
+        }
+        else if (type === 2) {
+            currentAnswer = 0;
+            problemEl.textContent = formattedBigNumber + " x 0 =";
+            hintEl.innerHTML = "<strong>" + S + " říká:</strong> Pozor, tohle je kouzelný trik! Představ si, že máš plný stůl jablek. A teď je vezmeš NULAKRÁT. To znamená, že tam nedáš vůbec nic! Je úplně jedno, jak obrovské číslo to na začátku bylo. Jakmile tam skočí 'krát nula', všechno zmizí a výsledek je vždycky čistá NULA!";
+        }
+        else if (type === 3) {
+            currentAnswer = bigNumber;
+            problemEl.textContent = formattedBigNumber + " x 1 =";
+            hintEl.innerHTML = "<strong>" + S + " říká:</strong> Když vezmeš celou hromadu hraček a zabalíš ji jenom do JEDNOHO velkého balíku (vezmeš ji 1x), tak v tom balíku zůstane přesně tolik hraček, kolik jich bylo na začátku. Číslo se vůbec nezmění, jen ho opiš!";
+        }
+        else if (type === 4) {
+            var change4 = Math.floor(Math.random() * 2) + 1;
+            currentAnswer = bigNumber + change4;
+            problemEl.textContent = formattedBigNumber + " + " + change4 + " =";
+            hintEl.innerHTML = "<strong>" + S + " říká:</strong> Představ si, že ti strejda koupí obrovskou stavebnici za spoustu peněz a k tomu ti dá ještě " + change4 + " koruny do ruky. Všechna ta velká čísla na začátku opiš, ta se nemění. Jenom tu úplně poslední korunu na konci zvětši o " + change4 + "!";
+        }
+        else {
+            var change5 = Math.floor(Math.random() * 2) + 1;
+            currentAnswer = bigNumber - change5;
+            problemEl.textContent = formattedBigNumber + " - " + change5 + " =";
+            hintEl.innerHTML = "<strong>" + S + " říká:</strong> Máš v kapse hromadu peněz a skrz malou dírku ti vypadnou " + change5 + " koruny. Všechna čísla ti v kapse zůstala stejná, ty opiš. Jenom od té úplně poslední číslice na konci odečti " + change5 + ".";
+        }
+    }
+
+    function pressKey(key) {
+        if (isWaitingForNext) return;
+
+        if (key === 'DEL') {
+            rawInputDigits = rawInputDigits.slice(0, -1);
+        } else if (key === 'ENTER') {
+            if (rawInputDigits !== '') checkAnswer();
+            return;
+        } else {
+            if (rawInputDigits.length < 8) rawInputDigits += key;
+        }
+
+        answerEl.value = (rawInputDigits === "") ? "" : formatNumberWithSpaces(rawInputDigits);
+    }
+
+    function checkAnswer() {
+        isWaitingForNext = true;
+        var userAnswer = parseInt(rawInputDigits);
+
+        if (userAnswer === currentAnswer) {
+            answerEl.className = 'answer-display status-correct';
+            answerEl.value = formatNumberWithSpaces(userAnswer) + ' ✔';
+            avatarEl.textContent = KVIZ.avatarSpravne;
+            feedbackEl.textContent = 'Výborně! Máš to správně! 🌟';
+            feedbackEl.className = 'feedback correct';
+
+            seriesCorrectCount++;
+            totalCorrectCount++;
+            scoreEl.textContent = totalCorrectCount;
+
+            setTimeout(nextStep, 2200);
+        } else {
+            answerEl.className = 'answer-display status-incorrect';
+            avatarEl.textContent = KVIZ.avatarPremysli;
+            feedbackEl.textContent = R(
+                'Jejda, asi ses někde uklikla nebo klikla špatně. Zkus se na to podívat ještě jednou. A když si nebudeš vědět rady, zeptej se strejdy Peti kliknutím na nápovědu! 😉',
+                'Jejda, asi ses někde uklikl nebo klikl špatně. Zkus se na to podívat ještě jednou. A když si nebudeš vědět rady, zeptej se strejdy Peti kliknutím na nápovědu! 😉'
+            );
+            feedbackEl.className = 'feedback incorrect';
+            seriesWrongCount++;
+
+            setTimeout(function() {
+                rawInputDigits = "";
+                answerEl.value = '';
+                answerEl.className = 'answer-display';
+                feedbackEl.textContent = '';
+                avatarEl.textContent = KVIZ.avatarHra;
+                isWaitingForNext = false;
+            }, 7000);
+        }
+    }
+
+    function nextStep() {
+        if (currentProblemNumber < problemsPerSeries) {
+            currentProblemNumber++;
+            generateProblem();
+        } else {
+            gameZone.style.display = 'none';
+            summaryZone.style.display = 'block';
+
+            document.getElementById('final-correct').textContent = seriesCorrectCount;
+            document.getElementById('final-wrong').textContent = seriesWrongCount;
+
+            var gradeEl = document.getElementById('final-grade');
+            if (seriesWrongCount === 0) gradeEl.textContent = '1*';
+            else if (seriesWrongCount <= 2) gradeEl.textContent = '1';
+            else if (seriesWrongCount <= 4) gradeEl.textContent = '2';
+            else if (seriesWrongCount <= 6) gradeEl.textContent = '3';
+            else gradeEl.textContent = '4';
+
+            var actionBtn = document.getElementById('action-button');
+            var questionEl = document.getElementById('restart-question');
+            var summaryTextEl = document.getElementById('summary-text');
+
+            if (currentSeriesNumber < totalSeriesCount) {
+                document.getElementById('summary-title').textContent = "🎉 SÉRIE " + currentSeriesNumber + " DOKONČENA! 🎉";
+                summaryTextEl.innerHTML = "<strong>Bylo to jednoduché, že? Jsi obrovská šikulka!</strong><br><br>Ale pozor, teď to bude zase o kousíček složitější a čísla budou o něco větší. Ale vůbec se neboj, je to úplně stejné! Pořád počítáme jen to poslední číslo na konci.";
+                questionEl.textContent = 'Pustíme se do další série?';
+                actionBtn.textContent = 'Jdu na těžší úroveň! 🚀';
+                actionBtn.setAttribute('onclick', 'nextSeries()');
+            } else {
+                document.getElementById('summary-title').textContent = '🏆 ' + R('DOKONČILA', 'DOKONČIL') + ' JSI CELOU HRU! 🏆';
+                document.getElementById('summary-avatar').textContent = KVIZ.avatarKonec;
+                summaryTextEl.innerHTML = "<strong>Geniální výkon, " + KVIZ.jmeno5pad + "! " + R("Zvládla", "Zvládl") + " jsi i ta největší čísla na světě!</strong><br><br>Strejda Peťa je na tebe strašně pyšný! 🥰";
+                questionEl.textContent = 'Chceš si zahrát celou hru úplně od začátku?';
+                actionBtn.textContent = 'Hrát celou hru znovu! 🔄';
+                actionBtn.setAttribute('onclick', 'resetWholeGame()');
+            }
+        }
+    }
+
+    function nextSeries() {
+        currentSeriesNumber++;
+        currentProblemNumber = 1;
+        seriesCorrectCount = 0;
+        seriesWrongCount = 0;
+
+        summaryZone.style.display = 'none';
+        gameZone.style.display = 'block';
+        generateProblem();
+    }
+
+    function resetWholeGame() {
+        currentSeriesNumber = 1;
+        currentProblemNumber = 1;
+        totalCorrectCount = 0;
+        seriesCorrectCount = 0;
+        seriesWrongCount = 0;
+        scoreEl.textContent = '0';
+
+        document.getElementById('summary-title').textContent = '🎉 Skvělá práce! 🎉';
+        document.getElementById('summary-avatar').textContent = KVIZ.avatarHra;
+
+        summaryZone.style.display = 'none';
+        gameZone.style.display = 'block';
+        generateProblem();
+    }
+    </script>
+
+</body>
+</html>
