@@ -226,12 +226,107 @@
             margin: 4px 0;
         }
         .hidden { display: none; }
+
+        /* --- Týmový režim --- */
+        .btn.btn-sekundarni {
+            background: linear-gradient(180deg, #a06a34, #6b4420);
+            color: #fff;
+            box-shadow: 0 4px #4a2e15;
+        }
+        .btn + .btn { margin-top: 11px; }
+
+        .tym-stav { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+        .tym-stav .ts {
+            font-weight: bold;
+            font-size: 16px;
+            background: #fff;
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            padding: 5px 9px;
+            color: var(--tmava);
+            white-space: nowrap;
+        }
+        .tym-stav .ts.aktivni {
+            box-shadow: 0 0 0 3px rgba(200,129,26,0.4);
+            transform: scale(1.06);
+        }
+
+        .tym-nadpis {
+            text-align: center;
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--tmava);
+            margin: 6px 0 14px;
+        }
+        .pocet-btny { display: flex; gap: 10px; justify-content: center; margin-bottom: 18px; }
+        .pocet-btn {
+            flex: 1;
+            padding: 14px 0;
+            font-size: 22px;
+            font-weight: bold;
+            border: 3px solid var(--amber);
+            background: #fff;
+            color: var(--tmava);
+            border-radius: 12px;
+            cursor: pointer;
+        }
+        .pocet-btn.aktivni { background: var(--amber); color: #fff; }
+        .tym-input-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .tym-dot {
+            flex: 0 0 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        .tym-dot.mini { flex: 0 0 24px; height: 24px; font-size: 12px; }
+        .tym-input {
+            flex: 1;
+            font-size: 18px;
+            padding: 11px 12px;
+            border: 2px solid #e0c79a;
+            border-radius: 10px;
+            min-width: 0;
+        }
+
+        .tah-banner {
+            color: #fff;
+            font-size: 18px;
+            text-align: center;
+            padding: 10px 12px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+        }
+
+        .tabulka { background: #fdeccb; border-radius: 14px; padding: 14px 16px; margin: 16px 0; }
+        .tab-nadpis {
+            font-weight: bold;
+            text-align: center;
+            color: var(--tmava);
+            margin-bottom: 8px;
+            font-size: 18px;
+        }
+        .tab-radek {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            font-size: 19px;
+            color: var(--tmava);
+            border-top: 1px solid #e6cfa0;
+        }
+        .tab-radek:first-of-type { border-top: none; }
+        .tab-tym { display: flex; align-items: center; gap: 9px; }
+        .tab-body { font-weight: bold; }
     </style>
 </head>
 <body>
     <div class="kviz">
         <div class="horni-lista">
-            <div class="skore-box">🍺 Body: <span id="skore">0</span> / <span id="skore-max">0</span></div>
+            <div class="skore-box" id="skore-box">🍺 Body: <span id="skore">0</span> / <span id="skore-max">0</span></div>
+            <div class="tym-stav hidden" id="tym-stav"></div>
             <button class="mute-btn" id="mute-btn" onclick="toggleMute()" title="Zapnout/vypnout zvuk">🔊</button>
         </div>
 
@@ -241,7 +336,22 @@
             <h1 id="uvod-titulek">Hospodský kvíz</h1>
             <div class="podtitulek" id="uvod-podtitulek">pro Evu a Jirku – díl 1</div>
             <div class="uvod-text" id="uvod-text"></div>
-            <button class="btn" onclick="spustKviz()">Spustit kvíz! 🍺</button>
+            <button class="btn" onclick="spustSolo()">Hrát dohromady 🍻</button>
+            <button class="btn btn-sekundarni" onclick="ukazNastaveniTymu()">Soupeřit v týmech ⚔️</button>
+        </div>
+
+        <!-- NASTAVENÍ TÝMŮ -->
+        <div id="zona-tymy" class="hidden">
+            <div class="velky-emoji">⚔️</div>
+            <div class="tym-nadpis">Kolik týmů se utká?</div>
+            <div class="pocet-btny">
+                <button class="pocet-btn" id="poc-2" onclick="vyberPocetTymu(2)">2</button>
+                <button class="pocet-btn" id="poc-3" onclick="vyberPocetTymu(3)">3</button>
+                <button class="pocet-btn" id="poc-4" onclick="vyberPocetTymu(4)">4</button>
+            </div>
+            <div id="tym-inputs"></div>
+            <button class="btn" onclick="zacniSouboj()">Začít souboj! ⚔️</button>
+            <button class="btn btn-sekundarni" onclick="zpetNaUvod()">← Zpět</button>
         </div>
 
         <!-- ÚVOD OKRUHU -->
@@ -249,11 +359,13 @@
             <div class="velky-emoji" id="okruh-emoji">🥕</div>
             <div class="okruh-cislo" id="okruh-cislo">Okruh 1</div>
             <div class="okruh-nazev" id="okruh-nazev"></div>
+            <div class="tabulka hidden" id="okruh-tabulka"></div>
             <button class="btn" onclick="spustOkruh()">Do toho! 👉</button>
         </div>
 
         <!-- OTÁZKA -->
         <div id="zona-otazka" class="hidden">
+            <div class="tah-banner hidden" id="tah-banner"></div>
             <div class="okruh-lista" id="q-okruh"></div>
             <div class="otazka-poradi" id="q-poradi"></div>
             <div class="otazka-text" id="q-text"></div>
@@ -266,11 +378,14 @@
         <div id="zona-souhrn" class="hidden">
             <div class="velky-emoji" id="souhrn-emoji">🏆</div>
             <div class="grade-titul" id="souhrn-titul"></div>
-            <div class="vysledek-box">
-                Správně jste odpověděli
-                <span class="velke-cislo" id="souhrn-body">0</span>
-                z <strong id="souhrn-max">0</strong> otázek
+            <div id="souhrn-solo">
+                <div class="vysledek-box">
+                    Správně jste odpověděli
+                    <span class="velke-cislo" id="souhrn-body">0</span>
+                    z <strong id="souhrn-max">0</strong> otázek
+                </div>
             </div>
+            <div class="tabulka hidden" id="souhrn-tymy"></div>
             <button class="btn" onclick="hrajZnovu()">Hrát znovu 🔄</button>
         </div>
     </div>
@@ -439,33 +554,138 @@
     var celkemOtazek = OKRUHY.reduce(function(s, o){ return s + o.otazky.length; }, 0);
     var zodpovezeno = false;
 
+    // Týmový režim
+    var rezim = 'solo';      // 'solo' nebo 'tymy'
+    var tymy = [];           // [{nazev, barva, emoji, body}]
+    var aktualniTym = 0;
+    var pocetTymu = 2;
+    var BARVY = [
+        { emoji: '🔴', barva: '#c0392b', nazev: 'Červení' },
+        { emoji: '🔵', barva: '#2c6fbf', nazev: 'Modří' },
+        { emoji: '🟢', barva: '#3f8f3f', nazev: 'Zelení' },
+        { emoji: '🟡', barva: '#d4a017', nazev: 'Žlutí' },
+    ];
+
     document.getElementById('skore-max').textContent = celkemOtazek;
     document.getElementById('souhrn-max').textContent = celkemOtazek;
     document.getElementById('uvod-titulek').textContent = KONFIG.titulek;
     document.getElementById('uvod-podtitulek').textContent = KONFIG.podtitulek;
     document.getElementById('uvod-text').textContent = KONFIG.uvod;
 
+    function escapeHtml(s) {
+        return String(s).replace(/[&<>"]/g, function(c){
+            return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c];
+        });
+    }
+
     function ukazZonu(id) {
-        ['zona-uvod','zona-okruh','zona-otazka','zona-souhrn'].forEach(function(z){
+        ['zona-uvod','zona-tymy','zona-okruh','zona-otazka','zona-souhrn'].forEach(function(z){
             document.getElementById(z).classList.add('hidden');
         });
         document.getElementById(id).classList.remove('hidden');
     }
 
-    function spustKviz() {
+    /* ----- Režim: hrát dohromady ----- */
+    function spustSolo() {
+        rezim = 'solo';
         zvukInit();
-        okruhIndex = 0;
-        otazkaIndex = 0;
-        skore = 0;
+        document.getElementById('skore-box').classList.remove('hidden');
+        document.getElementById('tym-stav').classList.add('hidden');
+        okruhIndex = 0; otazkaIndex = 0; skore = 0;
         document.getElementById('skore').textContent = '0';
         ukazOkruh();
     }
 
+    /* ----- Režim: souboj týmů ----- */
+    function ukazNastaveniTymu() {
+        zvukInit();
+        vyberPocetTymu(pocetTymu);
+        ukazZonu('zona-tymy');
+    }
+    function zpetNaUvod() { ukazZonu('zona-uvod'); }
+
+    function vyberPocetTymu(n) {
+        pocetTymu = n;
+        ['poc-2','poc-3','poc-4'].forEach(function(id){
+            document.getElementById(id).classList.remove('aktivni');
+        });
+        document.getElementById('poc-' + n).classList.add('aktivni');
+
+        var box = document.getElementById('tym-inputs');
+        var stare = {};
+        for (var j = 0; j < 4; j++) {
+            var ex = document.getElementById('tym-input-' + j);
+            if (ex) stare[j] = ex.value;
+        }
+        box.innerHTML = '';
+        for (var i = 0; i < n; i++) {
+            var b = BARVY[i];
+            var row = document.createElement('div');
+            row.className = 'tym-input-row';
+            var dot = document.createElement('span');
+            dot.className = 'tym-dot';
+            dot.style.background = b.barva;
+            dot.textContent = b.emoji;
+            var inp = document.createElement('input');
+            inp.type = 'text';
+            inp.className = 'tym-input';
+            inp.id = 'tym-input-' + i;
+            inp.maxLength = 18;
+            inp.value = (stare[i] !== undefined) ? stare[i] : b.nazev;
+            row.appendChild(dot);
+            row.appendChild(inp);
+            box.appendChild(row);
+        }
+    }
+
+    function zacniSouboj() {
+        tymy = [];
+        for (var i = 0; i < pocetTymu; i++) {
+            var b = BARVY[i];
+            var val = (document.getElementById('tym-input-' + i).value || '').trim();
+            tymy.push({ nazev: val || b.nazev, barva: b.barva, emoji: b.emoji, body: 0 });
+        }
+        rezim = 'tymy';
+        zvukResume();
+        okruhIndex = 0; otazkaIndex = 0; aktualniTym = 0;
+        document.getElementById('skore-box').classList.add('hidden');
+        document.getElementById('tym-stav').classList.remove('hidden');
+        renderTymStav();
+        ukazOkruh();
+    }
+
+    function renderTymStav() {
+        document.getElementById('tym-stav').innerHTML = tymy.map(function(t, i){
+            return '<span class="ts' + (i === aktualniTym ? ' aktivni' : '') +
+                   '" style="border-color:' + t.barva + '">' + t.emoji + ' ' + t.body + '</span>';
+        }).join('');
+    }
+
+    function tabulkaHTML(nadpis, medaile) {
+        var serazene = tymy.slice().sort(function(a, b){ return b.body - a.body; });
+        var radky = serazene.map(function(t, i){
+            var znak = medaile ? (['🥇','🥈','🥉','🏅'][i] + ' ') : '';
+            return '<div class="tab-radek"><span class="tab-tym">' + znak +
+                   '<span class="tym-dot mini" style="background:' + t.barva + '">' + t.emoji + '</span>' +
+                   escapeHtml(t.nazev) + '</span><span class="tab-body">' + t.body + ' b.</span></div>';
+        }).join('');
+        return '<div class="tab-nadpis">' + nadpis + '</div>' + radky;
+    }
+
+    /* ----- Průběh kvízu ----- */
     function ukazOkruh() {
         var o = OKRUHY[okruhIndex];
         document.getElementById('okruh-emoji').textContent = o.emoji;
         document.getElementById('okruh-cislo').textContent = 'Okruh ' + (okruhIndex + 1) + ' / ' + OKRUHY.length;
         document.getElementById('okruh-nazev').textContent = o.nazev;
+
+        var tab = document.getElementById('okruh-tabulka');
+        if (rezim === 'tymy' && okruhIndex > 0) {
+            tab.innerHTML = tabulkaHTML('Průběžné pořadí', false);
+            tab.classList.remove('hidden');
+        } else {
+            tab.classList.add('hidden');
+        }
         ukazZonu('zona-okruh');
     }
 
@@ -479,6 +699,16 @@
         zodpovezeno = false;
         var o = OKRUHY[okruhIndex];
         var q = o.otazky[otazkaIndex];
+
+        var banner = document.getElementById('tah-banner');
+        if (rezim === 'tymy') {
+            var t = tymy[aktualniTym];
+            banner.innerHTML = '⚔️ Na řadě: <strong>' + t.emoji + ' ' + escapeHtml(t.nazev) + '</strong>';
+            banner.style.background = t.barva;
+            banner.classList.remove('hidden');
+        } else {
+            banner.classList.add('hidden');
+        }
 
         document.getElementById('q-okruh').textContent = o.emoji + ' ' + o.nazev;
         document.getElementById('q-poradi').textContent = 'Otázka ' + (otazkaIndex + 1) + ' z ' + o.otazky.length;
@@ -516,8 +746,13 @@
         }
 
         if (vybrano === q.spravne) {
-            skore++;
-            document.getElementById('skore').textContent = skore;
+            if (rezim === 'tymy') {
+                tymy[aktualniTym].body++;
+                renderTymStav();
+            } else {
+                skore++;
+                document.getElementById('skore').textContent = skore;
+            }
             zvukSpravne();
         } else {
             tlacitka[vybrano].classList.add('spatne');
@@ -538,6 +773,10 @@
     }
 
     function dalsiOtazka() {
+        if (rezim === 'tymy') {
+            aktualniTym = (aktualniTym + 1) % tymy.length;
+            renderTymStav();
+        }
         otazkaIndex++;
         if (otazkaIndex < OKRUHY[okruhIndex].otazky.length) {
             ukazOtazku();
@@ -552,23 +791,49 @@
     }
 
     function ukazSouhrn() {
-        document.getElementById('souhrn-body').textContent = skore;
-        var procenta = celkemOtazek > 0 ? (skore / celkemOtazek) : 0;
-        var emoji, titul;
-        if (procenta >= 0.9)      { emoji = '🏆'; titul = 'Hospodský přeborník! Další rundu platí ostatní!'; }
-        else if (procenta >= 0.7) { emoji = '🍺'; titul = 'Ostřílený štamgast – klobouk dolů!'; }
-        else if (procenta >= 0.5) { emoji = '🥃'; titul = 'Slušný výkon, panák byl zasloužený!'; }
-        else if (procenta >= 0.3) { emoji = '😅'; titul = 'Ještě jeden fernet a příště to bude lepší!'; }
-        else                      { emoji = '🤪'; titul = 'Dneska to byla spíš ta slivovička…'; }
+        var soloBox = document.getElementById('souhrn-solo');
+        var tymyBox = document.getElementById('souhrn-tymy');
+        var emojiEl = document.getElementById('souhrn-emoji');
+        var titulEl = document.getElementById('souhrn-titul');
 
-        document.getElementById('souhrn-emoji').textContent = emoji;
-        document.getElementById('souhrn-titul').textContent = titul;
-        if (procenta >= 0.7) zvukFanfara();
+        if (rezim === 'tymy') {
+            soloBox.classList.add('hidden');
+            tymyBox.classList.remove('hidden');
+            tymyBox.innerHTML = tabulkaHTML('Konečné pořadí', true);
+
+            var max = tymy.reduce(function(m, t){ return Math.max(m, t.body); }, 0);
+            var vitezove = tymy.filter(function(t){ return t.body === max; });
+            if (vitezove.length > 1) {
+                emojiEl.textContent = '🤝';
+                titulEl.textContent = 'Remíza! ' + vitezove.map(function(t){ return t.nazev; }).join(' a ') + ' – rundu všem!';
+            } else {
+                emojiEl.textContent = '🏆';
+                titulEl.innerHTML = 'Vítězí ' + vitezove[0].emoji + ' <strong>' + escapeHtml(vitezove[0].nazev) + '</strong>! 🎉';
+            }
+            zvukFanfara();
+        } else {
+            tymyBox.classList.add('hidden');
+            soloBox.classList.remove('hidden');
+            document.getElementById('souhrn-body').textContent = skore;
+            var procenta = celkemOtazek > 0 ? (skore / celkemOtazek) : 0;
+            var emoji, titul;
+            if (procenta >= 0.9)      { emoji = '🏆'; titul = 'Hospodský přeborník! Další rundu platí ostatní!'; }
+            else if (procenta >= 0.7) { emoji = '🍺'; titul = 'Ostřílený štamgast – klobouk dolů!'; }
+            else if (procenta >= 0.5) { emoji = '🥃'; titul = 'Slušný výkon, panák byl zasloužený!'; }
+            else if (procenta >= 0.3) { emoji = '😅'; titul = 'Ještě jeden fernet a příště to bude lepší!'; }
+            else                      { emoji = '🤪'; titul = 'Dneska to byla spíš ta slivovička…'; }
+            emojiEl.textContent = emoji;
+            titulEl.textContent = titul;
+            if (procenta >= 0.7) zvukFanfara();
+        }
         ukazZonu('zona-souhrn');
     }
 
     function hrajZnovu() {
-        spustKviz();
+        document.getElementById('skore-box').classList.remove('hidden');
+        document.getElementById('tym-stav').classList.add('hidden');
+        document.getElementById('skore').textContent = '0';
+        ukazZonu('zona-uvod');
     }
 
     /* ---------------------------------------------------------------------
