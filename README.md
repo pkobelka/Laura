@@ -12,7 +12,8 @@ kvizy/                     # Sem patří jednotlivé kvízy
   _sablona.html                      # Šablona: matematika s klávesnicí (pro děti)
   _sablona-hospodsky-kviz.html       # Šablona: hospodský kvíz se soutěžními režimy
   laura-stitch-matematika.html
-  eva-jirka-hospodsky-kviz-01.html   # Hospodský kvíz – 1. rozehřívací díl (jeden průchod)
+  hanum-hospodsky-kviz-01.html       # Hospodský kvíz – 1. rozehřívací díl (jeden průchod)
+  hanum-hospodsky-kviz-02.html       # Hospodský kvíz – 2. díl (nové otázky)
 ```
 
 ## Dva typy kvízů
@@ -23,7 +24,7 @@ kvizy/                     # Sem patří jednotlivé kvízy
   odpovědi. Nový díl uděláš tak, že vhodný soubor zkopíruješ, přejmenuješ
   a nahoře ve `<script>` v bloku **① OTÁZKY** přepíšeš okruhy a otázky.
   Existují dvě verze:
-  - `eva-jirka-hospodsky-kviz-01.html` – **rozehřívací díl**: jeden prostý
+  - `hanum-hospodsky-kviz-01.html` (a `-02`) – **rozehřívací díly**: jeden prostý
     průchod s jedním skóre, bez soutěžení.
   - `_sablona-hospodsky-kviz.html` – **soutěžní šablona** se třemi režimy:
     - *Hrát dohromady* – jedno skóre pro partu u stolu.
