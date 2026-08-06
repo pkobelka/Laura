@@ -521,6 +521,7 @@
     var skore = 0;
     var celkemOtazek = OKRUHY.reduce(function(s, o){ return s + o.otazky.length; }, 0);
     var zodpovezeno = false;
+    var spravnaPozice = 0;
 
     document.getElementById('skore-max').textContent = celkemOtazek;
     document.getElementById('souhrn-max').textContent = celkemOtazek;
@@ -586,11 +587,18 @@
         var box = document.getElementById('q-odpovedi');
         box.innerHTML = '';
         var pismena = ['A', 'B', 'C', 'D', 'E', 'F'];
-        q.moznosti.forEach(function(text, i){
+        // Zamícháme pořadí odpovědí, aby správná nebyla pořád „A".
+        var poradi = q.moznosti.map(function(_, i){ return i; });
+        for (var mi = poradi.length - 1; mi > 0; mi--) {
+            var mj = Math.floor(Math.random() * (mi + 1));
+            var mt = poradi[mi]; poradi[mi] = poradi[mj]; poradi[mj] = mt;
+        }
+        spravnaPozice = poradi.indexOf(q.spravne);
+        poradi.forEach(function(origIdx, pos){
             var btn = document.createElement('button');
             btn.className = 'odpoved';
-            btn.innerHTML = '<span class="pismeno">' + pismena[i] + '</span><span>' + text + '</span>';
-            btn.onclick = function(){ odpovez(i); };
+            btn.innerHTML = '<span class="pismeno">' + pismena[pos] + '</span><span>' + q.moznosti[origIdx] + '</span>';
+            btn.onclick = function(){ odpovez(pos); };
             box.appendChild(btn);
         });
 
@@ -611,10 +619,10 @@
 
         for (var i = 0; i < tlacitka.length; i++) {
             tlacitka[i].disabled = true;
-            if (i === q.spravne) tlacitka[i].classList.add('spravne');
+            if (i === spravnaPozice) tlacitka[i].classList.add('spravne');
         }
 
-        if (vybrano === q.spravne) {
+        if (vybrano === spravnaPozice) {
             skore++;
             document.getElementById('skore').textContent = skore;
             zvukSpravne();
