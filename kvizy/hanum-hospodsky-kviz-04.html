@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospodský kvíz – Hánům na dovolenou (4. díl)</title>
+    <style>
+        :root {
+            --tmava: #3a2417;
+            --amber: #c8811a;
+            --amber-svetla: #f0b850;
+            --krem: #fff7e9;
+            --zelena: #3f8f3f;
+            --cervena: #c0392b;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #7a4a22 0%, #3a2417 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 12px;
+        }
+        .kviz {
+            background-color: var(--krem);
+            width: 100%;
+            max-width: 560px;
+            border-radius: 18px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+            border: 5px solid var(--amber);
+            max-height: 96vh;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .horni-lista {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .skore-box {
+            font-weight: bold;
+            font-size: 17px;
+            color: var(--tmava);
+            background: #fdeccb;
+            border: 2px dashed var(--amber);
+            border-radius: 10px;
+            padding: 6px 12px;
+        }
+        .skore-box span { color: var(--zelena); }
+        .mute-btn {
+            font-size: 22px;
+            background: #fdeccb;
+            border: 2px solid var(--amber);
+            border-radius: 10px;
+            width: 46px;
+            height: 42px;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        h1 {
+            color: var(--tmava);
+            text-align: center;
+            font-size: 27px;
+            margin: 6px 0 4px;
+        }
+        .podtitulek {
+            text-align: center;
+            color: #7a5a3a;
+            font-size: 17px;
+            margin-bottom: 14px;
+        }
+        .velky-emoji { font-size: 60px; text-align: center; margin: 8px 0; }
+
+        .uvod-text {
+            font-size: 18px;
+            line-height: 1.5;
+            color: #33261a;
+            margin: 14px 4px 20px;
+            text-align: center;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            background: linear-gradient(180deg, var(--amber-svetla), var(--amber));
+            color: #2a1a0d;
+            border: none;
+            padding: 15px 18px;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 14px;
+            cursor: pointer;
+            box-shadow: 0 4px #96610f;
+            transition: transform 0.08s, box-shadow 0.08s;
+            touch-action: manipulation;
+        }
+        .btn:active { transform: translateY(3px); box-shadow: 0 1px #96610f; }
+
+        /* Okruh – uvítací obrazovka okruhu */
+        .okruh-cislo {
+            text-align: center;
+            font-size: 18px;
+            color: var(--amber);
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .okruh-nazev {
+            text-align: center;
+            font-size: 26px;
+            font-weight: bold;
+            color: var(--tmava);
+            margin: 6px 0 18px;
+        }
+
+        /* Otázka */
+        .okruh-lista {
+            text-align: center;
+            font-size: 15px;
+            color: var(--amber);
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+        .otazka-poradi {
+            text-align: center;
+            color: #8a6a4a;
+            font-size: 15px;
+            margin-bottom: 10px;
+        }
+        .otazka-text {
+            font-size: 23px;
+            font-weight: bold;
+            color: #2a1a0d;
+            text-align: center;
+            line-height: 1.35;
+            margin: 6px 0 18px;
+        }
+
+        .odpovedi { display: flex; flex-direction: column; gap: 11px; }
+        .odpoved {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            text-align: left;
+            background: #fff;
+            border: 3px solid #e0c79a;
+            border-radius: 14px;
+            padding: 14px 15px;
+            font-size: 19px;
+            color: #2a1a0d;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s;
+        }
+        .odpoved:hover:not(:disabled) { background: #fdeccb; }
+        .odpoved:disabled { cursor: default; }
+        .odpoved .pismeno {
+            flex: 0 0 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: var(--amber);
+            color: #fff;
+            font-weight: bold;
+            font-size: 19px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .odpoved.spravne {
+            background: #e6f5e6;
+            border-color: var(--zelena);
+        }
+        .odpoved.spravne .pismeno { background: var(--zelena); }
+        .odpoved.spatne {
+            background: #fbe6e3;
+            border-color: var(--cervena);
+        }
+        .odpoved.spatne .pismeno { background: var(--cervena); }
+
+        .fakt {
+            margin-top: 16px;
+            background: #fff9db;
+            border-left: 5px solid var(--amber);
+            padding: 12px 14px;
+            border-radius: 8px;
+            font-size: 17px;
+            line-height: 1.45;
+            color: #5a4420;
+        }
+        .fakt strong { color: var(--tmava); }
+
+        .dalsi-btn { margin-top: 16px; }
+
+        /* Souhrn */
+        .grade-titul {
+            font-size: 26px;
+            font-weight: bold;
+            color: var(--tmava);
+            text-align: center;
+            margin: 10px 6px;
+            line-height: 1.35;
+        }
+        .vysledek-box {
+            background: #fdeccb;
+            border-radius: 14px;
+            padding: 16px;
+            text-align: center;
+            font-size: 20px;
+            margin: 16px 0;
+            color: var(--tmava);
+        }
+        .vysledek-box .velke-cislo {
+            font-size: 46px;
+            font-weight: bold;
+            color: var(--zelena);
+            display: block;
+            margin: 4px 0;
+        }
+        .hidden { display: none; }
+
+        /* --- Přehled okruhů na úvodu --- */
+        .prehled-okruhu {
+            background: #fdeccb;
+            border-radius: 14px;
+            padding: 12px 16px;
+            margin: 4px 0 20px;
+            text-align: left;
+        }
+        .prehled-nadpis {
+            font-weight: bold;
+            text-align: center;
+            color: var(--tmava);
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        .prehled-radek {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 7px 0;
+            font-size: 17px;
+            color: var(--tmava);
+            border-top: 1px solid #e6cfa0;
+        }
+        .prehled-radek:first-of-type { border-top: none; }
+        .prehled-emoji { font-size: 22px; flex: 0 0 26px; text-align: center; }
+        .prehled-nazev { flex: 1; }
+        .prehled-pocet { font-weight: bold; color: #8a6a4a; font-size: 14px; white-space: nowrap; }
+    </style>
+</head>
+<body>
+    <div class="kviz">
+        <div class="horni-lista">
+            <div class="skore-box" id="skore-box">🍺 Body: <span id="skore">0</span> / <span id="skore-max">0</span></div>
+            <button class="mute-btn" id="mute-btn" onclick="toggleMute()" title="Zapnout/vypnout zvuk">🔊</button>
+        </div>
+
+        <!-- ÚVOD -->
+        <div id="zona-uvod">
+            <div class="velky-emoji">🍻🥃🎯</div>
+            <h1 id="uvod-titulek">Hospodský kvíz</h1>
+            <div class="podtitulek" id="uvod-podtitulek">Hánům na dovolenou od Petra a Alky · 4. díl</div>
+            <div class="uvod-text" id="uvod-text"></div>
+            <div class="prehled-okruhu" id="prehled-okruhu"></div>
+            <button class="btn" onclick="spustSolo()">Spustit kvíz 🍻</button>
+        </div>
+
+        <!-- ÚVOD OKRUHU -->
+        <div id="zona-okruh" class="hidden">
+            <div class="velky-emoji" id="okruh-emoji">🥕</div>
+            <div class="okruh-cislo" id="okruh-cislo">Okruh 1</div>
+            <div class="okruh-nazev" id="okruh-nazev"></div>
+            <button class="btn" onclick="spustOkruh()">Do toho! 👉</button>
+        </div>
+
+        <!-- OTÁZKA -->
+        <div id="zona-otazka" class="hidden">
+            <div class="okruh-lista" id="q-okruh"></div>
+            <div class="otazka-poradi" id="q-poradi"></div>
+            <div class="otazka-text" id="q-text"></div>
+            <div class="odpovedi" id="q-odpovedi"></div>
+            <div class="fakt hidden" id="q-fakt"></div>
+            <button class="btn dalsi-btn hidden" id="dalsi-btn" onclick="dalsiOtazka()">Další otázka 👉</button>
+        </div>
+
+        <!-- SOUHRN -->
+        <div id="zona-souhrn" class="hidden">
+            <div class="velky-emoji" id="souhrn-emoji">🏆</div>
+            <div class="grade-titul" id="souhrn-titul"></div>
+            <div id="souhrn-solo">
+                <div class="vysledek-box">
+                    Správně jste odpověděli
+                    <span class="velke-cislo" id="souhrn-body">0</span>
+                    z <strong id="souhrn-max">0</strong> otázek
+                </div>
+            </div>
+            <button class="btn" onclick="hrajZnovu()">Hrát znovu 🔄</button>
+        </div>
+    </div>
+
+    <script>
+    /* =====================================================================
+       ①  OTÁZKY – TADY SE DĚLÁ NOVÝ DÍL
+       ---------------------------------------------------------------------
+       Každý okruh má "nazev", "emoji" a seznam "otazky".
+       Každá otázka:
+         q        = znění otázky
+         moznosti = pole odpovědí (klidně 2, 3 nebo 4)
+         spravne  = pořadí správné odpovědi (POZOR: počítá se od 0!
+                    první možnost = 0, druhá = 1, třetí = 2, čtvrtá = 3)
+         fakt     = (nepovinné) zajímavost, ukáže se po odpovědi
+
+       Nový víkendový díl uděláš tak, že tenhle soubor zkopíruješ,
+       přejmenuješ (např. hanum-hospodsky-kviz-03.html) a přepíšeš
+       otázky níže. Nic jiného měnit nemusíš.
+    ===================================================================== */
+    const KONFIG = {
+        titulek: "Hospodský kvíz",
+        podtitulek: "Hánům na dovolenou od Petra a Alky · 4. díl",
+        uvod: "Nalijte si, sedněte ke stolu a pusťte se do toho společně s přáteli. " +
+              "Pět okruhů, spousta otázek – a za správnou odpověď zacinká odměna! 🔔",
+    };
+
+    const OKRUHY = [
+        {
+            nazev: "Zahrádka, sad a divné ovoce",
+            emoji: "🥕",
+            otazky: [
+                { q: "Kdy a jak se sklízí chřest?",
+                  moznosti: ["Na jaře jako mladé výhony", "Až na podzim jako plody", "V zimě pod sněhem", "Jako sušená semena"], spravne: 0,
+                  fakt: "Bílý chřest se ryje ze země dřív, než vykoukne na světlo." },
+                { q: "Které z tohoto ovoce je „peckovice“ (má jednu tvrdou pecku)?",
+                  moznosti: ["Broskev", "Jablko", "Angrešt", "Rybíz"], spravne: 0,
+                  fakt: "Peckovice jsou třešeň, švestka, broskev; jablko je malvice." },
+                { q: "Čím je jahoda z pohledu botaniky zvláštní?",
+                  moznosti: ["Semínka má na povrchu (je to nepravý plod)", "Nemá vůbec semena", "Roste pod zemí", "Je to bobule jako rajče"], spravne: 0,
+                  fakt: "Pravé plůdky jsou ta drobná „zrníčka“ navrchu jahody." },
+                { q: "Co mají fazole a hrách (luštěniny) navíc oproti jiné zelenině?",
+                  moznosti: ["Poutají dusík a hnojí půdu", "Nepotřebují vůbec vodu", "Vůbec nekvetou", "Rostou i v zimě"], spravne: 0,
+                  fakt: "Na kořenech mají hlízky s bakteriemi, které berou dusík ze vzduchu." },
+                { q: "Cuketa je vlastně:",
+                  moznosti: ["Nedozrálá tykev (dýně)", "Druh okurky nakládačky", "Zelený meloun", "Kořenová zelenina"], spravne: 0,
+                  fakt: "Sklízí se mladá a měkká, přezrálá zdřevnatí." },
+                { q: "Réva vinná se nejlépe daří:",
+                  moznosti: ["Na slunném svahu", "V hlubokém stínu", "V bažině", "Ve sklepě"], spravne: 0,
+                  fakt: "Víno má rádo slunce a teplo jižních strání." },
+                { q: "Křen je:",
+                  moznosti: ["Pálivý kořen k masu i do zavařenin", "Sladké ovoce", "List na salát", "Lesní houba"], spravne: 0,
+                  fakt: "Čerstvě nastrouhaný křen pěkně „profackuje“." },
+                { q: "Bazalka je bylinka:",
+                  moznosti: ["Jednoletá (na zimu uhyne)", "Věčně zelený keř", "Jehličnatá", "Vodní"], spravne: 0,
+                  fakt: "Rozmarýn nebo tymián naopak vydrží na zahradě víc let." },
+                { q: "Na kterých výhoncích plodí maliník nejvíc?",
+                  moznosti: ["Na loňských (dvouletých)", "Na úplně čerstvých letošních", "Na kořenech", "Na listech"], spravne: 0,
+                  fakt: "Odplozené staré výhony se proto vystříhávají." },
+                { q: "Co do kompostu NEpatří?",
+                  moznosti: ["Maso a kosti", "Slupky od zeleniny", "Posekaná tráva", "Kávová sedlina"], spravne: 0,
+                  fakt: "Maso láká hlodavce a zapáchá; kompost je pro rostlinné zbytky." },
+            ],
+        },
+        {
+            nazev: "Domácí zvířectvo",
+            emoji: "🐔",
+            otazky: [
+                { q: "Kráva je přežvýkavec – to znamená, že:",
+                  moznosti: ["Vrací potravu a znovu ji přežvykuje", "Žere jen jednou týdně", "Nemá vůbec zuby", "Nikdy nespí"], spravne: 0,
+                  fakt: "Má složený žaludek, jehož hlavní částí je bachor." },
+                { q: "Jak se získává ovčí vlna?",
+                  moznosti: ["Stříháním (ovci to neublíží)", "Vytrháváním", "Až po porážce", "Sběrem z keřů"], spravne: 0,
+                  fakt: "Ostříhaná ovce vlnu zase doroste." },
+                { q: "Jak se jmenuje samice ovce?",
+                  moznosti: ["Bahnice", "Klisna", "Koza", "Srna"], spravne: 0,
+                  fakt: "Samec je beran, mládě jehně." },
+                { q: "Koně okovává:",
+                  moznosti: ["Kovář (podkovář)", "Veterinář injekcí", "Zahradník", "Nikdo, kopyta nerostou"], spravne: 0,
+                  fakt: "Podkova chrání rohovinu kopyta, která dorůstá jako nehet." },
+                { q: "Kdo obývá jeden včelí úl?",
+                  moznosti: ["Královna, spousta dělnic a trubci", "Jen samci", "Deset stejných včel", "Rodina myší"], spravne: 0,
+                  fakt: "Matka klade vajíčka, dělnice sbírají, trubci ji oplodní." },
+                { q: "Co se stane včele medonosné, když bodne člověka?",
+                  moznosti: ["Zpravidla uhyne (žihadlo zůstane v kůži)", "Nic, bodá dál", "Vůbec nemá žihadlo", "Zdvojnásobí se"], spravne: 0,
+                  fakt: "Háček žihadla se v kůži zachytí a včela ho ztratí." },
+                { q: "Snese slepice vejce i bez kohouta?",
+                  moznosti: ["Ano, jen nebude oplozené", "Ne, bez kohouta nesnáší", "Jen jednou za rok", "Jen v zimě"], spravne: 0,
+                  fakt: "Na vajíčka do kuchyně kohouta vůbec netřeba." },
+                { q: "Čím je pozoruhodný poštovní holub?",
+                  moznosti: ["Umí najít cestu domů z velké dálky", "Neumí létat", "Žije ve vodě", "Nemá peří"], spravne: 0,
+                  fakt: "Dřív roznášeli zprávy přes stovky kilometrů." },
+                { q: "Kráva bučí, koza mečí a ovce:",
+                  moznosti: ["Bečí", "Kváká", "Řehtá", "Chrochtá"], spravne: 0,
+                  fakt: "Každé zvíře na dvoře má svůj hlas." },
+                { q: "Kachní vejce je oproti slepičímu:",
+                  moznosti: ["Větší a mastnější", "Menší", "Bez skořápky", "Trojhranné"], spravne: 0,
+                  fakt: "Kachní vejce je vydatnější, hodí se do těsta." },
+            ],
+        },
+        {
+            nazev: "Chata, příroda a houby",
+            emoji: "🌲",
+            otazky: [
+                { q: "Sova je:",
+                  moznosti: ["Noční dravec s tichým letem", "Zpěvný pták aktivní ve dne", "Vodní pták", "Šplhavec jako datel"], spravne: 0,
+                  fakt: "Měkké peří jí umožňuje lovit naprosto neslyšně." },
+                { q: "Proč datel buší zobákem do kmene?",
+                  moznosti: ["Hledá larvy pod kůrou a dělá si dutinu", "Aby se zahřál", "Aby zpíval", "Aby si obrousil zobák nakrátko"], spravne: 0,
+                  fakt: "Hlavu mu chrání odpružená lebka." },
+                { q: "Kam táhne čáp bílý na zimu?",
+                  moznosti: ["Až do Afriky", "Nikam, spí v hnízdě", "Pod vodu", "Do jeskyně"], spravne: 0,
+                  fakt: "U nás hnízdí na komínech a sloupech." },
+                { q: "Čím je známý bobr?",
+                  moznosti: ["Staví na potocích hráze", "Loví ryby jako kočka", "Umí létat", "Žije na poušti"], spravne: 0,
+                  fakt: "Je to hlodavec, který kácí stromy a přehrazuje toky." },
+                { q: "Který strom má jehličí ve svazečcích po dvou?",
+                  moznosti: ["Borovice", "Smrk", "Modřín", "Jedle"], spravne: 0,
+                  fakt: "U smrku rostou jehličky jednotlivě, u borovice po dvou." },
+                { q: "Jak se rozmnožuje kapradí?",
+                  moznosti: ["Výtrusy (nemá květy ani semena)", "Semeny v šišce", "Cibulkami", "Řízky listů"], spravne: 0,
+                  fakt: "Patří k nejstarším rostlinám, kvést vůbec neumí." },
+                { q: "Jmelí rostoucí na větvích stromů je:",
+                  moznosti: ["Poloparazit (bere hostiteli mízu)", "Obyčejný keř v zemi", "Druh mechu", "Houba"], spravne: 0,
+                  fakt: "O Vánocích se pod ním líbá." },
+                { q: "Proč je slunéčko sedmitečné (beruška) na zahradě užitečné?",
+                  moznosti: ["Žere mšice", "Opyluje jako včela", "Ničí kořeny", "Dělá med"], spravne: 0,
+                  fakt: "Jedna beruška spořádá za život stovky mšic." },
+                { q: "Který hřib je oblíbený „pravák“ do polévky?",
+                  moznosti: ["Hřib smrkový", "Muchomůrka zelená", "Pýchavka", "Čechratka"], spravne: 0,
+                  fakt: "Hřib smrkový (pravák) je mezi houbaři král." },
+                { q: "Kdy je klíště nejaktivnější?",
+                  moznosti: ["Od jara do podzimu (za vlhka a tepla)", "Jen v zimě", "Jen v poledne v létě", "Vůbec, je vzácné"], spravne: 0,
+                  fakt: "Největší pozor si dej na jaře a v předjaří." },
+            ],
+        },
+        {
+            nazev: "Panák pro zahřátí",
+            emoji: "🥃",
+            otazky: [
+                { q: "Šampaňské a sekt jsou:",
+                  moznosti: ["Šumivá vína (bublinky z CO₂)", "Pálenky", "Likéry", "Piva"], spravne: 0,
+                  fakt: "Bublinky vznikají druhotným kvašením." },
+                { q: "Které tři suroviny kromě vody tvoří pivo?",
+                  moznosti: ["Slad, chmel, kvasnice", "Cukr, sůl, droždí", "Med, ovoce, líh", "Mléko, vejce, mouka"], spravne: 0,
+                  fakt: "Poctivé pivo si vystačí přesně s těmito surovinami." },
+                { q: "Co dává pivu chmel?",
+                  moznosti: ["Hořkost a vůni", "Barvu", "Alkohol", "Pěnu"], spravne: 0,
+                  fakt: "Žatecký chmel je mezi sládky světový pojem." },
+                { q: "Co v pivu a víně dělají kvasnice?",
+                  moznosti: ["Mění cukr na alkohol a CO₂", "Barví nápoj", "Přidávají vodu", "Chladí kvas"], spravne: 0,
+                  fakt: "Bez kvasnic by žádný alkohol nevznikl." },
+                { q: "Čím je ochucený gin?",
+                  moznosti: ["Jalovcem", "Višní", "Medem", "Kávou"], spravne: 0,
+                  fakt: "Charakteristickou vůni dávají jalovcové bobulky." },
+                { q: "Vodka je typicky:",
+                  moznosti: ["Čirý, skoro neutrální destilát z obilí či brambor", "Sladký ovocný likér", "Bylinné digestivo", "Šumivé víno"], spravne: 0,
+                  fakt: "Podává se vychlazená a čistá." },
+                { q: "Z čeho se pálí koňak (brandy)?",
+                  moznosti: ["Z vína (hroznů)", "Ze švestek", "Z obilí", "Z brambor"], spravne: 0,
+                  fakt: "Francouzský Cognac je nejslavnější brandy světa." },
+                { q: "Z jaké rostliny se vyrábí tequila?",
+                  moznosti: ["Z agáve (v Mexiku)", "Z cukrové třtiny", "Z ječmene", "Z brambor"], spravne: 0,
+                  fakt: "Modrá agáve roste kolem mexického města Tequila." },
+                { q: "Jak se říká pivu načepovanému skoro celému z pěny?",
+                  moznosti: ["Mlíko", "Hladinka", "Šnyt", "Řízek"], spravne: 0,
+                  fakt: "„Mlíko“ je sladké a krémové, dobré na rozjezd." },
+                { q: "Proč po alkoholu druhý den bolí hlava (kocovina)?",
+                  moznosti: ["Tělo se odvodní a chybí mu voda", "Zvýší se teplota", "Ztloustnou svaly", "Zbystří se zrak"], spravne: 0,
+                  fakt: "Proto pomáhá mezi panáky popíjet vodu." },
+            ],
+        },
+        {
+            nazev: "Hospodská vědomostní",
+            emoji: "🇨🇿",
+            otazky: [
+                { q: "Kolik má Česko zhruba obyvatel?",
+                  moznosti: ["Kolem 10,5 milionu", "Kolem 1 milionu", "Kolem 50 milionů", "Kolem 100 tisíc"], spravne: 0,
+                  fakt: "Zhruba deset a půl milionu lidí." },
+                { q: "Kde sídlí automobilka Škoda?",
+                  moznosti: ["V Mladé Boleslavi", "Ve Zlíně", "V Ostravě", "V Plzni"], spravne: 0,
+                  fakt: "Škoda Auto je jedním z největších zaměstnavatelů v zemi." },
+                { q: "Který panovník má přezdívku „Otec vlasti“?",
+                  moznosti: ["Karel IV.", "Přemysl Otakar II.", "Rudolf II.", "Václav IV."], spravne: 0,
+                  fakt: "Za něj vznikla univerzita, Karlův most i Nové Město pražské." },
+                { q: "Měkké kontaktní čočky vynalezl Čech:",
+                  moznosti: ["Otto Wichterle", "Jan Janský", "František Křižík", "Jára Cimrman"], spravne: 0,
+                  fakt: "První čočky prý odlil doma na stavebnici Merkur." },
+                { q: "Hlavní město Polska je:",
+                  moznosti: ["Varšava", "Krakov", "Vratislav", "Katovice"], spravne: 0,
+                  fakt: "Leží na řece Visle." },
+                { q: "Nejnavštěvovanější hrad v Česku bývá:",
+                  moznosti: ["Karlštejn", "Špilberk", "Bouzov", "Trosky"], spravne: 0,
+                  fakt: "Karel IV. ho postavil jako pokladnici říše." },
+                { q: "Ve kterém lázeňském městě se vyrábí Becherovka a slavné oplatky?",
+                  moznosti: ["Karlovy Vary", "Teplice", "Luhačovice", "Poděbrady"], spravne: 0,
+                  fakt: "Karlovarské oplatky patří k Varům jako horké prameny." },
+                { q: "Které město zbohatlo ve středověku na stříbře (chrám sv. Barbory, UNESCO)?",
+                  moznosti: ["Kutná Hora", "Příbram", "Kolín", "Cheb"], spravne: 0,
+                  fakt: "Ze stříbra Kutné Hory se razily groše." },
+                { q: "Kde pramení a kam teče Vltava?",
+                  moznosti: ["Pramení na Šumavě, vlévá se do Labe", "Pramení v Krkonoších, teče do moře", "Pramení v Alpách", "Teče rovnou do Dunaje"], spravne: 0,
+                  fakt: "U Mělníka se Vltava vlévá do Labe." },
+                { q: "Hokejová legenda s číslem 68 na dresu je:",
+                  moznosti: ["Jaromír Jágr", "Dominik Hašek", "Emil Zátopek", "Jan Železný"], spravne: 0,
+                  fakt: "Číslo 68 nosí na památku roku 1968." },
+            ],
+        },
+    ];
+
+    /* =====================================================================
+       ②  ENGINE – tady už nic měnit nemusíš.
+    ===================================================================== */
+    var okruhIndex = 0;
+    var otazkaIndex = 0;
+    var skore = 0;
+    var celkemOtazek = OKRUHY.reduce(function(s, o){ return s + o.otazky.length; }, 0);
+    var zodpovezeno = false;
+    var spravnaPozice = 0;
+
+    document.getElementById('skore-max').textContent = celkemOtazek;
+    document.getElementById('souhrn-max').textContent = celkemOtazek;
+    document.getElementById('uvod-titulek').textContent = KONFIG.titulek;
+    document.getElementById('uvod-podtitulek').textContent = KONFIG.podtitulek;
+    document.getElementById('uvod-text').textContent = KONFIG.uvod;
+
+    // Přehled okruhů na úvodní obrazovce (generuje se sám z otázek)
+    document.getElementById('prehled-okruhu').innerHTML =
+        '<div class="prehled-nadpis">Co vás čeká – ' + OKRUHY.length + ' okruhů:</div>' +
+        OKRUHY.map(function(o){
+            return '<div class="prehled-radek">' +
+                   '<span class="prehled-emoji">' + o.emoji + '</span>' +
+                   '<span class="prehled-nazev">' + escapeHtml(o.nazev) + '</span>' +
+                   '<span class="prehled-pocet">' + o.otazky.length + ' ot.</span>' +
+                   '</div>';
+        }).join('');
+
+    function escapeHtml(s) {
+        return String(s).replace(/[&<>"]/g, function(c){
+            return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c];
+        });
+    }
+
+    function ukazZonu(id) {
+        ['zona-uvod','zona-okruh','zona-otazka','zona-souhrn'].forEach(function(z){
+            document.getElementById(z).classList.add('hidden');
+        });
+        document.getElementById(id).classList.remove('hidden');
+    }
+
+    function spustSolo() {
+        zvukInit();
+        okruhIndex = 0; otazkaIndex = 0; skore = 0;
+        document.getElementById('skore').textContent = '0';
+        ukazOkruh();
+    }
+
+    /* ----- Průběh kvízu ----- */
+    function ukazOkruh() {
+        var o = OKRUHY[okruhIndex];
+        document.getElementById('okruh-emoji').textContent = o.emoji;
+        document.getElementById('okruh-cislo').textContent = 'Okruh ' + (okruhIndex + 1) + ' / ' + OKRUHY.length;
+        document.getElementById('okruh-nazev').textContent = o.nazev;
+        ukazZonu('zona-okruh');
+    }
+
+    function spustOkruh() {
+        zvukResume();
+        otazkaIndex = 0;
+        ukazOtazku();
+    }
+
+    function ukazOtazku() {
+        zodpovezeno = false;
+        var o = OKRUHY[okruhIndex];
+        var q = o.otazky[otazkaIndex];
+
+        document.getElementById('q-okruh').textContent = o.emoji + ' ' + o.nazev;
+        document.getElementById('q-poradi').textContent = 'Otázka ' + (otazkaIndex + 1) + ' z ' + o.otazky.length;
+        document.getElementById('q-text').textContent = q.q;
+
+        var box = document.getElementById('q-odpovedi');
+        box.innerHTML = '';
+        var pismena = ['A', 'B', 'C', 'D', 'E', 'F'];
+        // Zamícháme pořadí odpovědí, aby správná nebyla pořád „A".
+        var poradi = q.moznosti.map(function(_, i){ return i; });
+        for (var mi = poradi.length - 1; mi > 0; mi--) {
+            var mj = Math.floor(Math.random() * (mi + 1));
+            var mt = poradi[mi]; poradi[mi] = poradi[mj]; poradi[mj] = mt;
+        }
+        spravnaPozice = poradi.indexOf(q.spravne);
+        poradi.forEach(function(origIdx, pos){
+            var btn = document.createElement('button');
+            btn.className = 'odpoved';
+            btn.innerHTML = '<span class="pismeno">' + pismena[pos] + '</span><span>' + q.moznosti[origIdx] + '</span>';
+            btn.onclick = function(){ odpovez(pos); };
+            box.appendChild(btn);
+        });
+
+        var faktEl = document.getElementById('q-fakt');
+        faktEl.classList.add('hidden');
+        faktEl.innerHTML = '';
+        document.getElementById('dalsi-btn').classList.add('hidden');
+
+        ukazZonu('zona-otazka');
+    }
+
+    function odpovez(vybrano) {
+        if (zodpovezeno) return;
+        zodpovezeno = true;
+
+        var q = OKRUHY[okruhIndex].otazky[otazkaIndex];
+        var tlacitka = document.getElementById('q-odpovedi').children;
+
+        for (var i = 0; i < tlacitka.length; i++) {
+            tlacitka[i].disabled = true;
+            if (i === spravnaPozice) tlacitka[i].classList.add('spravne');
+        }
+
+        if (vybrano === spravnaPozice) {
+            skore++;
+            document.getElementById('skore').textContent = skore;
+            zvukSpravne();
+        } else {
+            tlacitka[vybrano].classList.add('spatne');
+            zvukSpatne();
+        }
+
+        if (q.fakt) {
+            var faktEl = document.getElementById('q-fakt');
+            faktEl.innerHTML = '<strong>Věděli jste?</strong> ' + q.fakt;
+            faktEl.classList.remove('hidden');
+        }
+
+        var dalsi = document.getElementById('dalsi-btn');
+        var jePosledni = (okruhIndex === OKRUHY.length - 1) &&
+                         (otazkaIndex === OKRUHY[okruhIndex].otazky.length - 1);
+        dalsi.textContent = jePosledni ? 'Zobrazit výsledek 🏁' : 'Další otázka 👉';
+        dalsi.classList.remove('hidden');
+    }
+
+    function dalsiOtazka() {
+        otazkaIndex++;
+        if (otazkaIndex < OKRUHY[okruhIndex].otazky.length) {
+            ukazOtazku();
+        } else {
+            okruhIndex++;
+            if (okruhIndex < OKRUHY.length) {
+                ukazOkruh();
+            } else {
+                ukazSouhrn();
+            }
+        }
+    }
+
+    function ukazSouhrn() {
+        var emojiEl = document.getElementById('souhrn-emoji');
+        var titulEl = document.getElementById('souhrn-titul');
+        document.getElementById('souhrn-body').textContent = skore;
+
+        var procenta = celkemOtazek > 0 ? (skore / celkemOtazek) : 0;
+        var emoji, titul;
+        if (procenta >= 0.9)      { emoji = '🏆'; titul = 'Hospodský přeborník! Další rundu platí ostatní!'; }
+        else if (procenta >= 0.7) { emoji = '🍺'; titul = 'Ostřílený štamgast – klobouk dolů!'; }
+        else if (procenta >= 0.5) { emoji = '🥃'; titul = 'Slušný výkon, panák byl zasloužený!'; }
+        else if (procenta >= 0.3) { emoji = '😅'; titul = 'Ještě jeden fernet a příště to bude lepší!'; }
+        else                      { emoji = '🤪'; titul = 'Dneska to byla spíš ta slivovička…'; }
+        emojiEl.textContent = emoji;
+        titulEl.textContent = titul;
+        if (procenta >= 0.7) zvukFanfara();
+
+        ukazZonu('zona-souhrn');
+    }
+
+    function hrajZnovu() {
+        document.getElementById('skore').textContent = '0';
+        ukazZonu('zona-uvod');
+    }
+
+    /* ---------------------------------------------------------------------
+       ZVUK – generuje se přímo v prohlížeči (Web Audio API),
+       žádné soubory nejsou potřeba.
+    --------------------------------------------------------------------- */
+    var audioCtx = null;
+    var ztlumeno = false;
+
+    function zvukInit() {
+        if (!audioCtx) {
+            try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+            catch (e) { audioCtx = null; }
+        }
+        zvukResume();
+    }
+    function zvukResume() {
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    }
+    function toggleMute() {
+        ztlumeno = !ztlumeno;
+        document.getElementById('mute-btn').textContent = ztlumeno ? '🔇' : '🔊';
+    }
+    function ton(freq, start, delka, typ, hlasitost) {
+        if (!audioCtx || ztlumeno) return;
+        var osc = audioCtx.createOscillator();
+        var g = audioCtx.createGain();
+        osc.type = typ || 'sine';
+        osc.frequency.value = freq;
+        var t0 = audioCtx.currentTime + start;
+        g.gain.setValueAtTime(0.0001, t0);
+        g.gain.exponentialRampToValueAtTime(hlasitost || 0.25, t0 + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + delka);
+        osc.connect(g); g.connect(audioCtx.destination);
+        osc.start(t0); osc.stop(t0 + delka + 0.02);
+    }
+    function zvukSpravne() {
+        // veselé stoupavé „ta-da-dá"
+        ton(523.25, 0.00, 0.15, 'triangle', 0.3); // C5
+        ton(659.25, 0.12, 0.15, 'triangle', 0.3); // E5
+        ton(783.99, 0.24, 0.28, 'triangle', 0.3); // G5
+    }
+    function zvukSpatne() {
+        // krátké klesavé „mm-mm"
+        ton(196.00, 0.00, 0.20, 'sawtooth', 0.18); // G3
+        ton(155.56, 0.16, 0.28, 'sawtooth', 0.18); // Eb3
+    }
+    function zvukFanfara() {
+        ton(523.25, 0.00, 0.16, 'triangle', 0.3);
+        ton(659.25, 0.14, 0.16, 'triangle', 0.3);
+        ton(783.99, 0.28, 0.16, 'triangle', 0.3);
+        ton(1046.50, 0.42, 0.45, 'triangle', 0.32);
+    }
+    </script>
+</body>
+</html>
