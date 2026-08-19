@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stitchova matematika pro Kristýnku</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        .game-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+            border: 4px solid #1f5f8b;
+            max-height: 95vh;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            color: #1f5f8b;
+            margin-top: 0;
+            margin-bottom: 5px;
+            font-size: 24px;
+        }
+
+        .welcome-box, .summary-box {
+            background-color: #fff;
+            padding: 5px;
+        }
+
+        .avatar-uvod {
+            font-size: 60px;
+            margin: 10px 0;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .welcome-text {
+            font-size: 17px;
+            line-height: 1.4;
+            color: #333;
+            margin: 15px 5px;
+            font-weight: 500;
+        }
+
+        .hint-container {
+            margin: 10px 0;
+            min-height: 40px;
+        }
+
+        .btn-hint-trigger {
+            background-color: #e2f0fd;
+            color: #1f5f8b;
+            border: 2px dashed #1f5f8b;
+            padding: 8px 12px;
+            font-size: 15px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.2s;
+        }
+
+        .strejda-box {
+            display: none;
+            background-color: #fff9db;
+            border-left: 5px solid #f59f00;
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 15px;
+            text-align: left;
+            line-height: 1.4;
+            color: #664d03;
+            font-weight: 500;
+            margin-top: 8px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .avatar-hra {
+            font-size: 45px;
+            margin: 5px 0;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 15px;
+            font-weight: bold;
+            font-size: 14px;
+            background-color: #f0f7fc;
+            padding: 8px;
+            border-radius: 10px;
+            border: 1px dashed #1f5f8b;
+        }
+
+        .score { color: #2e7d32; }
+        .progress { color: #1f5f8b; }
+        .series-info { color: #7b1fa2; }
+
+        .problem-box {
+            font-size: 30px;
+            font-weight: bold;
+            color: #333;
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 15px;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+            letter-spacing: 1px;
+        }
+
+        /* Slovní úlohy jsou delší – potřebují menší písmo */
+        .problem-box.slovni {
+            font-size: 19px;
+            letter-spacing: 0;
+            line-height: 1.4;
+            text-align: left;
+        }
+
+        .series-name {
+            font-size: 15px;
+            font-weight: bold;
+            color: #7b1fa2;
+            margin: -8px 0 10px;
+        }
+
+        .answer-display {
+            font-size: 30px;
+            text-align: center;
+            width: 220px;
+            padding: 6px;
+            border: 3px solid #1f5f8b;
+            border-radius: 30px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            color: #1f5f8b;
+            background-color: #fff;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .answer-display.status-correct {
+            border-color: #4CAF50;
+            color: #2e7d32;
+            animation: blink-green 0.4s ease 2;
+            background-color: #e8f5e9;
+        }
+
+        @keyframes blink-green {
+            0% { background-color: #fff; transform: scale(1); }
+            50% { background-color: #a5d6a7; transform: scale(1.03); box-shadow: 0 0 10px #4CAF50; }
+            100% { background-color: #e8f5e9; transform: scale(1); }
+        }
+
+        .answer-display.status-incorrect {
+            background-color: #ffebee;
+            border-color: #f44336;
+            color: #c62828;
+        }
+
+        .numeric-keyboard {
+            display: inline-block;
+            background: #e1edf5;
+            padding: 10px;
+            border-radius: 15px;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .keyboard-row {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 8px;
+        }
+
+        .keyboard-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .keyboard-row button {
+            width: 28%;
+            height: 55px;
+            margin: 0 2%;
+            font-size: 24px;
+            font-weight: bold;
+            border: none;
+            border-radius: 12px;
+            background-color: #ffffff;
+            color: #333;
+            cursor: pointer;
+            box-shadow: 0 3px #b8cedc;
+            transition: all 0.1s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .keyboard-row button:active {
+            transform: translateY(3px);
+            box-shadow: 0 0px #b8cedc;
+            background-color: #f0f0f0;
+        }
+
+        .keyboard-row button.btn-delete {
+            background-color: #ff9800;
+            color: white;
+            box-shadow: 0 3px #c67600;
+        }
+
+        .keyboard-row button.btn-enter {
+            background-color: #4CAF50;
+            color: white;
+            box-shadow: 0 3px #388E3C;
+        }
+
+        .feedback {
+            margin-top: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            min-height: 45px;
+            line-height: 1.3;
+            padding: 0 5px;
+        }
+
+        .correct { color: #4CAF50; font-size: 20px; }
+        .incorrect { color: #d32f2f; }
+
+        .grade {
+            font-size: 70px;
+            color: #d32f2f;
+            font-weight: bold;
+            margin: 5px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .btn-action {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px #388E3C;
+            margin-top: 10px;
+            transition: all 0.1s;
+            touch-action: manipulation;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <div id="welcome-zone" class="welcome-box">
+            <h1 id="welcome-title">Ahoj!</h1>
+            <div class="avatar-uvod" id="welcome-avatar">👋</div>
+            <div class="welcome-text" id="welcome-text"></div>
+            <button class="btn-action" id="start-btn" onclick="startGame()">Jdu na to, dědo! 🎮</button>
+        </div>
+
+        <div id="game-zone" style="display: none;">
+            <div class="hint-container">
+                <button class="btn-hint-trigger" id="hint-button" onclick="toggleHint()">Chceš, aby ti děda Peťa napověděl? 💡</button>
+                <div class="strejda-box" id="strejda-hint"></div>
+            </div>
+
+            <div class="avatar-hra" id="game-avatar">👍</div>
+
+            <div class="stats">
+                <div class="series-info">Série: <span id="series-val">1</span> / 5 🧩</div>
+                <div class="score">Celkem správně: <span id="score-val">0</span></div>
+                <div class="progress">Příklad: <span id="progress-val">1</span> / 10</div>
+            </div>
+
+            <div class="series-name" id="series-name"></div>
+
+            <div class="problem-box" id="problem">...</div>
+
+            <input type="text" class="answer-display" id="answer" readonly placeholder="?">
+
+            <div class="numeric-keyboard">
+                <div class="keyboard-row">
+                    <button onclick="pressKey('1')">1</button>
+                    <button onclick="pressKey('2')">2</button>
+                    <button onclick="pressKey('3')">3</button>
+                </div>
+                <div class="keyboard-row">
+                    <button onclick="pressKey('4')">4</button>
+                    <button onclick="pressKey('5')">5</button>
+                    <button onclick="pressKey('6')">6</button>
+                </div>
+                <div class="keyboard-row">
+                    <button onclick="pressKey('7')">7</button>
+                    <button onclick="pressKey('8')">8</button>
+                    <button onclick="pressKey('9')">9</button>
+                </div>
+                <div class="keyboard-row">
+                    <button class="btn-delete" onclick="pressKey('DEL')">⌫</button>
+                    <button onclick="pressKey('0')">0</button>
+                    <button class="btn-enter" onclick="pressKey('ENTER')">✔</button>
+                </div>
+            </div>
+
+            <div class="feedback" id="feedback"></div>
+        </div>
+
+        <div id="summary-zone" class="summary-box" style="display: none;">
+            <h2 id="summary-title">🎉 Skvělá práce! 🎉</h2>
+            <div class="avatar-hra" id="summary-avatar">🥳👑💖</div>
+            <p style="font-size: 18px; line-height: 1.4; margin: 12px 0; padding: 0 5px;" id="summary-text"></p>
+
+            <div style="background-color: #f0f7fc; padding: 12px; border-radius: 15px; font-size: 16px; margin: 15px 0;">
+                <div>V této sérii správně: <strong style="color: #2e7d32;" id="final-correct">0</strong> / 10</div>
+                <div>Chybiček: <strong style="color: #c62828;" id="final-wrong">0</strong></div>
+            </div>
+
+            <p style="font-size: 16px; margin-bottom: 3px;">Tvoje známka za tuto sérii:</p>
+            <div class="grade" id="final-grade">1*</div>
+
+            <p style="font-size: 18px; font-weight: bold; color: #1f5f8b; margin-top: 20px;" id="restart-question">Chtěl/a bys další takové příklady?</p>
+            <button class="btn-action" id="action-button" onclick="nextSeries()">Ano, chci další sérii! 🎮</button>
+        </div>
+    </div>
+
+    <script>
+    /* =====================================================================
+       ①  NASTAVENÍ – TADY MĚŇ PRO KAŽDÉ DÍTĚ
+       ---------------------------------------------------------------------
+       Stačí přepsat hodnoty v uvozovkách. Nic jiného níže měnit nemusíš.
+    ===================================================================== */
+    const KVIZ = {
+        // Rod dítěte kvůli české gramatice: "holka" nebo "kluk"
+        rod: "holka",
+
+        // Oslovení (5. pád) – "Ahoj Kristýnko!"
+        jmeno5pad: "Kristýnko",
+        // Jméno v 1. pádu – používá se ve slovních úlohách
+        jmeno1pad: "Kristýnka",
+
+        // Kdo kvíz připravil (objeví se v úvodním textu)
+        strejda: "děda Peťa",
+        // Krátká verze do nápověd – "Děda Peťa říká: ..."
+        strejdaKratce: "Děda Peťa",
+
+        // Emoji avataři pro jednotlivé situace (Stitch = 👽, klidně změň)
+        avatarUvod:    "👽💙🌺",
+        avatarHra:     "👽✏️",
+        avatarSpravne: "👽🥳🌟",
+        avatarPremysli:"👽🤔",
+        avatarKonec:   "👽👑🥇🎉⭐",
+
+        // Úvodní text (HTML povoleno, <br> = odřádkování)
+        uvodniText:
+            "Tak co, těšíš se do třetí třídy? 😊 STREJDA a Stitch ti připravili pět sérií příkladů, " +
+            "ať máš hlavičku v pohotovosti." +
+            "<br><br>" +
+            "Začneme rozcvičkou do dvaceti, pak si dáme počítání do sta, " +
+            "celou násobilku a na konec opravdové slovní úlohy. " +
+            "Kdykoliv si nebudeš vědět rady, klikni na nápovědu – poradím ti trik. " +
+            "A Stitch drží palce. 💙",
+    };
+
+    /* =====================================================================
+       ②  KOLIK PŘÍKLADŮ A SÉRIÍ
+    ===================================================================== */
+    const problemsPerSeries = 10; // příkladů v jedné sérii
+    const totalSeriesCount  = 5;  // kolik sérií (obtížnost roste)
+
+    /* =====================================================================
+       ③  ENGINE – normálně tu nic měnit nemusíš.
+           Otázky se generují ve funkci generateProblem() níže (bod ④).
+    ===================================================================== */
+
+    // Pomůcka pro rod: R("ženská verze", "mužská verze")
+    const jeHolka = KVIZ.rod === "holka";
+    function R(z, m) { return jeHolka ? z : m; }
+
+    var currentAnswer = 0;
+    var rawInputDigits = "";
+    var totalCorrectCount = 0;
+    var seriesCorrectCount = 0;
+    var seriesWrongCount = 0;
+
+    var currentProblemNumber = 1;
+    var currentSeriesNumber = 1;
+    var isWaitingForNext = false;
+
+    var problemEl = document.getElementById('problem');
+    var answerEl = document.getElementById('answer');
+    var feedbackEl = document.getElementById('feedback');
+    var scoreEl = document.getElementById('score-val');
+    var progressEl = document.getElementById('progress-val');
+    var seriesEl = document.getElementById('series-val');
+    var hintEl = document.getElementById('strejda-hint');
+    var avatarEl = document.getElementById('game-avatar');
+
+    var welcomeZone = document.getElementById('welcome-zone');
+    var gameZone = document.getElementById('game-zone');
+    var summaryZone = document.getElementById('summary-zone');
+
+    // Naplní úvodní obrazovku podle nastavení výše
+    (function applyConfig() {
+        document.getElementById('welcome-title').textContent = "Ahoj " + KVIZ.jmeno5pad + "! 💕";
+        document.getElementById('welcome-avatar').textContent = KVIZ.avatarUvod;
+        document.getElementById('game-avatar').textContent = KVIZ.avatarHra;
+        document.getElementById('summary-avatar').textContent = KVIZ.avatarHra;
+        document.getElementById('welcome-text').innerHTML =
+            KVIZ.uvodniText.replace(/STREJDA/g, KVIZ.strejda);
+        document.getElementById('restart-question').textContent =
+            R("Chtěla bys další takové příklady?", "Chtěl bys další takové příklady?");
+    })();
+
+    function startGame() {
+        welcomeZone.style.display = 'none';
+        gameZone.style.display = 'block';
+        generateProblem();
+    }
+
+    function toggleHint() {
+        hintEl.style.display = (hintEl.style.display === 'block') ? 'none' : 'block';
+    }
+
+    function formatNumberWithSpaces(num) {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    }
+
+    /* =====================================================================
+       ④  OTÁZKY – pět sérií s rostoucí obtížností (2. až 3. třída).
+           Každá funkce serieX() vrátí objekt:
+             { zadani: "co se ukáže", vysledek: číslo,
+               napoveda: "co poradí děda", slovni: true/false }
+           Chceš jiné příklady? Uprav (nebo přidej) větev v příslušné sérii.
+    ===================================================================== */
+
+    // Náhodné celé číslo od min do max (včetně)
+    function nahodne(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+    // Náhodná položka z pole
+    function vyber(pole) { return pole[Math.floor(Math.random() * pole.length)]; }
+    // Česká předložka: "ve dvou/třech/čtyřech", ale "v pěti/šesti..."
+    function vVe(n) { return (n >= 2 && n <= 4) ? "ve" : "v"; }
+
+    // Názvy sérií – ukazují se nad příkladem a v přestávce mezi sériemi
+    const SERIE = [
+        { nazev: "1. série – Rozcvička do 20 ✏️",
+          popis: "sčítání a odčítání do dvaceti" },
+        { nazev: "2. série – Počítáme do 100 🧮",
+          popis: "sčítání a odčítání dvojciferných čísel" },
+        { nazev: "3. série – Násobilka 2, 5 a 10 ✖️",
+          popis: "násobení a dělení dvěma, pěti a deseti" },
+        { nazev: "4. série – Velká násobilka 3–9 🏆",
+          popis: "násobení a dělení až do stovky" },
+        { nazev: "5. série – Slovní úlohy 🕵️",
+          popis: "úlohy ze života – nejdřív přemýšlíme, potom počítáme" },
+    ];
+
+    /* ---------- Nápovědy, které se hodí ve víc sériích ---------- */
+
+    // Sčítání přes desítku: 47 + 8 → nejdřív na 50, pak zbytek
+    function napovedaScitani(a, b, S) {
+        var desitka = Math.ceil((a + 1) / 10) * 10;
+        var doDesitky = desitka - a;
+        if (doDesitky <= b) {
+            return "<strong>" + S + " říká:</strong> Skoč si nejdřív na rovnou desítku. Z " + a +
+                   " chybí do " + desitka + " přesně " + doDesitky + ". Takže " + a + " + " + doDesitky +
+                   " = " + desitka + " a pak přidej zbylých " + (b - doDesitky) +
+                   ". Přes desítku se to počítá o moc líp!";
+        }
+        return "<strong>" + S + " říká:</strong> Tady desítku ani nepřekročíš. Sečti hezky jednotky: " +
+               (a % 10) + " + " + b + " = " + ((a % 10) + b) + " a desítky nech, jak jsou.";
+    }
+
+    // Odčítání přes desítku: 63 − 7 → nejdřív na 60, pak zbytek
+    function napovedaOdcitani(a, b, S) {
+        var desitka = Math.floor(a / 10) * 10;
+        var doDesitky = a - desitka;
+        if (b > doDesitky) {
+            return "<strong>" + S + " říká:</strong> Odečítej na dvakrát. Nejdřív ubereš " + doDesitky +
+                   ", tím se dostaneš na rovných " + desitka + ", a pak ubereš ještě zbylé " + (b - doDesitky) +
+                   ". Dohromady jsi ubrala " + b + " – a jsi tam!";
+        }
+        return "<strong>" + S + " říká:</strong> Desítky můžeš nechat být, ty se nemění. Stačí odečíst " +
+               "jednotky: " + doDesitky + " − " + b + " = " + (doDesitky - b) + ".";
+    }
+
+    // Trik na každý spoj v násobilce (b je to "trikové" číslo)
+    function napovedaNasobeni(a, b, S) {
+        var uvod = "<strong>" + S + " říká:</strong> ";
+        if (b === 10) return uvod + "Násobit deseti je ze všeho nejlehčí – k číslu " + a + " jenom připiš nulu. " + a + " × 10 = " + (a * 10) + ".";
+        if (b === 2)  return uvod + "Dvakrát znamená dvojnásobek – přičti číslo samo k sobě: " + a + " + " + a + " = " + (a * 2) + ".";
+        if (b === 5)  return uvod + "Pětkrát je přesně polovina z desetkrát. " + a + " × 10 = " + (a * 10) + ", a půlka z toho je " + (a * 5) + ".";
+        if (b === 3)  return uvod + "Třikrát = dvojnásobek a ještě jednou. " + a + " + " + a + " = " + (a * 2) + ", a k tomu přidej " + a + ".";
+        if (b === 4)  return uvod + "Čtyřikrát = dvakrát dvojnásobek. " + a + " + " + a + " = " + (a * 2) + " a to zdvojnásob znovu: " + (a * 2) + " + " + (a * 2) + ".";
+        if (b === 6)  return uvod + "Šestkrát = pětkrát a ještě jednou. " + a + " × 5 = " + (a * 5) + ", a k tomu přidej " + a + ".";
+        if (b === 7)  return uvod + "Sedmičku si rozděl na pět a dva. " + a + " × 5 = " + (a * 5) + ", " + a + " × 2 = " + (a * 2) + ", a to sečti.";
+        if (b === 8)  return uvod + "Osmkrát = desetkrát bez dvou. " + a + " × 10 = " + (a * 10) + ", odeber " + a + " × 2 = " + (a * 2) + ".";
+        if (b === 9)  return uvod + "Devítka je šikula: desetkrát mínus jednou. " + a + " × 10 = " + (a * 10) + " a ubereš jedno " + a + ".";
+        return uvod + "Vzpomeň si na řadu násobilky čísla " + b + " a odříkej si ji nahlas.";
+    }
+
+    // Dělení = obrácená otázka na násobilku
+    function napovedaDeleni(delenec, delitel, vysledek, S) {
+        var rada = "";
+        for (var i = 1; i <= vysledek; i++) rada += (i > 1 ? ", " : "") + (delitel * i);
+        return "<strong>" + S + " říká:</strong> Dělení je násobilka naopak. Ptáš se: kolikrát se " + delitel +
+               " vejde do " + delenec + "? Odříkej si řadu: " + rada + " – a víš, kolikrát to bylo.";
+    }
+
+    /* ---------- 1. série: sčítání a odčítání do 20 ---------- */
+    function serie1(S) {
+        var typ = nahodne(0, 2);
+        if (typ === 0) {
+            var a = nahodne(5, 14);
+            var b = nahodne(3, Math.min(9, 20 - a));
+            return { zadani: a + " + " + b + " =", vysledek: a + b, napoveda: napovedaScitani(a, b, S) };
+        }
+        if (typ === 1) {
+            var c = nahodne(11, 20);
+            var d = nahodne(3, 9);
+            return { zadani: c + " − " + d + " =", vysledek: c - d, napoveda: napovedaOdcitani(c, d, S) };
+        }
+        // tři čísla za sebou – trénink pořádku v hlavě
+        var e = nahodne(4, 9), f = nahodne(2, 6), g = nahodne(2, 5);
+        if (g === f) g = (g === 5) ? 2 : g + 1;   // ať se přičtení a odečtení nevyruší
+        return {
+            zadani: e + " + " + f + " − " + g + " =",
+            vysledek: e + f - g,
+            napoveda: "<strong>" + S + " říká:</strong> Postupuj hezky zleva doprava. Nejdřív " + e + " + " + f +
+                      " = " + (e + f) + " a teprve z toho ubereš " + g + ". Nikam nespěchej."
+        };
+    }
+
+    /* ---------- 2. série: sčítání a odčítání do 100 ---------- */
+    function serie2(S) {
+        var typ = nahodne(0, 3);
+        if (typ === 0) {          // dvojciferné + jednociferné přes desítku
+            var a = nahodne(23, 88);
+            var b = nahodne(4, 9);
+            return { zadani: a + " + " + b + " =", vysledek: a + b, napoveda: napovedaScitani(a, b, S) };
+        }
+        if (typ === 1) {          // dvojciferné − jednociferné přes desítku
+            var c = nahodne(22, 95);
+            var d = nahodne(4, 9);
+            return { zadani: c + " − " + d + " =", vysledek: c - d, napoveda: napovedaOdcitani(c, d, S) };
+        }
+        if (typ === 2) {          // dvojciferné + dvojciferné
+            var e = nahodne(21, 59);
+            var f = nahodne(11, 99 - e);
+            return {
+                zadani: e + " + " + f + " =",
+                vysledek: e + f,
+                napoveda: "<strong>" + S + " říká:</strong> Rozděl si to na desítky a jednotky. Desítky: " +
+                          (Math.floor(e / 10) * 10) + " + " + (Math.floor(f / 10) * 10) + " = " +
+                          (Math.floor(e / 10) * 10 + Math.floor(f / 10) * 10) + ". Jednotky: " + (e % 10) + " + " +
+                          (f % 10) + " = " + ((e % 10) + (f % 10)) + ". A obojí sečti dohromady."
+            };
+        }
+        // dvojciferné − dvojciferné
+        var g = nahodne(45, 99);
+        var h = nahodne(12, g - 10);
+        return {
+            zadani: g + " − " + h + " =",
+            vysledek: g - h,
+            napoveda: "<strong>" + S + " říká:</strong> Nejdřív ubírej celé desítky: " + g + " − " +
+                      (Math.floor(h / 10) * 10) + " = " + (g - Math.floor(h / 10) * 10) +
+                      ". A teprve potom uber posledních " + (h % 10) + "."
+        };
+    }
+
+    /* ---------- 3. série: násobilka 2, 5, 10 a dělení ---------- */
+    function serie3(S) {
+        var trik = vyber([2, 5, 10]);
+        var a = nahodne(2, 10);
+        if (nahodne(0, 2) === 0) {   // dělení
+            var soucin = a * trik;
+            return {
+                zadani: soucin + " : " + trik + " =",
+                vysledek: a,
+                napoveda: napovedaDeleni(soucin, trik, a, S)
+            };
+        }
+        // násobení – pořadí činitelů občas prohodíme
+        var zadani = (nahodne(0, 1) === 0) ? (a + " × " + trik + " =") : (trik + " × " + a + " =");
+        return { zadani: zadani, vysledek: a * trik, napoveda: napovedaNasobeni(a, trik, S) };
+    }
+
+    /* ---------- 4. série: celá násobilka 3–9 a dělení ---------- */
+    function serie4(S) {
+        var trik = vyber([3, 4, 6, 7, 8, 9]);
+        var a = nahodne(2, 10);
+        if (nahodne(0, 2) === 0) {   // dělení
+            var soucin = a * trik;
+            return {
+                zadani: soucin + " : " + trik + " =",
+                vysledek: a,
+                napoveda: napovedaDeleni(soucin, trik, a, S)
+            };
+        }
+        var zadani = (nahodne(0, 1) === 0) ? (a + " × " + trik + " =") : (trik + " × " + a + " =");
+        return { zadani: zadani, vysledek: a * trik, napoveda: napovedaNasobeni(a, trik, S) };
+    }
+
+    /* ---------- 5. série: slovní úlohy ---------- */
+    function serie5(S) {
+        var J = KVIZ.jmeno1pad;
+        var uloha = nahodne(0, 5);
+
+        if (uloha === 0) {
+            var sacku = nahodne(3, 8), bonbonu = nahodne(3, 9);
+            return {
+                slovni: true,
+                zadani: "Stitch si schoval bonbóny do sáčků – v jednom je " + bonbonu +
+                        " bonbónů. Kolik bonbónů má " + vVe(sacku) + " " + sacku + " sáčcích?",
+                vysledek: sacku * bonbonu,
+                napoveda: "<strong>" + S + " říká:</strong> Stejné hromádky několikrát za sebou – to je násobení. " +
+                          "Počítej " + sacku + " × " + bonbonu + "."
+            };
+        }
+        if (uloha === 1) {
+            var mela = nahodne(45, 95), dala = nahodne(13, 38);
+            return {
+                slovni: true,
+                zadani: J + " nasbírala " + mela + " kaštanů a " + dala + " jich dala kamarádce. Kolik kaštanů jí zůstalo?",
+                vysledek: mela - dala,
+                napoveda: "<strong>" + S + " říká:</strong> Něco ubylo, takže odčítáme: " + mela + " − " + dala +
+                          ". Nejdřív uber desítky, potom jednotky."
+            };
+        }
+        if (uloha === 2) {
+            var deti = nahodne(3, 6), kazde = nahodne(3, 8);
+            var celkem = deti * kazde;
+            return {
+                slovni: true,
+                // 2 až 4 „děti", od 5 výš „dětí" – ať to zní česky
+                zadani: "Stitch přinesl " + celkem + " kokosů a " + J + " je má rozdělit spravedlivě mezi " +
+                        deti + (deti < 5 ? " děti" : " dětí") + ". Kolik kokosů dostane každé dítě?",
+                vysledek: kazde,
+                napoveda: napovedaDeleni(celkem, deti, kazde, S) + " Spravedlivě rozdělit = dělení."
+            };
+        }
+        if (uloha === 3) {
+            var korale = nahodne(28, 64), pridala = nahodne(12, 30);
+            return {
+                slovni: true,
+                zadani: J + " navlékla " + korale + " korálků a babička jí dala ještě " + pridala +
+                        ". Kolik korálků má teď dohromady?",
+                vysledek: korale + pridala,
+                napoveda: "<strong>" + S + " říká:</strong> „Dohromady\u201c znamená sčítat: " + korale + " + " + pridala +
+                          ". Sečti nejdřív desítky, pak jednotky."
+            };
+        }
+        if (uloha === 4) {
+            var krabic = nahodne(3, 6), pastelek = nahodne(4, 8), ztratilo = nahodne(2, 7);
+            return {
+                slovni: true,
+                zadani: (vVe(krabic) === "ve" ? "Ve " : "V ") + krabic + " krabicích je po " + pastelek +
+                        " pastelkách. " + ztratilo +
+                        " pastelek se ztratilo. Kolik pastelek zbylo?",
+                vysledek: krabic * pastelek - ztratilo,
+                napoveda: "<strong>" + S + " říká:</strong> Tahle úloha má dva kroky. Nejdřív spočítej všechny pastelky: " +
+                          krabic + " × " + pastelek + " = " + (krabic * pastelek) + ". A teprve pak uber těch " +
+                          ztratilo + ", co se ztratily."
+            };
+        }
+        // pozor: nákup musí vyjít do 100 Kč, ať nevznikne záporný výsledek
+        var kusu = nahodne(2, 4);
+        var cena = vyber([15, 20, 25, 30].filter(function (c) { return kusu * c <= 90; }));
+        return {
+            slovni: true,
+            zadani: J + " má 100 Kč a koupí " + kusu + " zmrzliny po " + cena +
+                    " Kč – jednu pro sebe, ostatní pro Stitche. Kolik korun jí zbude?",
+            vysledek: 100 - kusu * cena,
+            napoveda: "<strong>" + S + " říká:</strong> Zase dva kroky. Nejdřív kolik zaplatí: " + kusu + " × " + cena +
+                      " = " + (kusu * cena) + " Kč. A pak " + (kusu * cena) + " Kč odečti od stovky."
+        };
+    }
+
+    /* ---------- Sestavení příkladu na obrazovce ---------- */
+    function generateProblem() {
+        isWaitingForNext = false;
+        rawInputDigits = "";
+        answerEl.value = '';
+        answerEl.className = 'answer-display';
+        feedbackEl.textContent = '';
+        avatarEl.textContent = KVIZ.avatarHra;
+        hintEl.style.display = 'none';
+
+        progressEl.textContent = currentProblemNumber;
+        seriesEl.textContent = currentSeriesNumber;
+        document.getElementById('series-name').textContent = SERIE[currentSeriesNumber - 1].nazev;
+
+        var S = KVIZ.strejdaKratce; // zkratka do nápověd
+        var u;                      // vylosovaná úloha
+
+        if (currentSeriesNumber === 1)      u = serie1(S);
+        else if (currentSeriesNumber === 2) u = serie2(S);
+        else if (currentSeriesNumber === 3) u = serie3(S);
+        else if (currentSeriesNumber === 4) u = serie4(S);
+        else                                u = serie5(S);
+
+        currentAnswer = u.vysledek;
+        problemEl.textContent = u.zadani;
+        problemEl.className = u.slovni ? 'problem-box slovni' : 'problem-box';
+        hintEl.innerHTML = u.napoveda;
+    }
+
+    function pressKey(key) {
+        if (isWaitingForNext) return;
+
+        if (key === 'DEL') {
+            rawInputDigits = rawInputDigits.slice(0, -1);
+        } else if (key === 'ENTER') {
+            if (rawInputDigits !== '') checkAnswer();
+            return;
+        } else {
+            if (rawInputDigits.length < 8) rawInputDigits += key;
+        }
+
+        answerEl.value = (rawInputDigits === "") ? "" : formatNumberWithSpaces(rawInputDigits);
+    }
+
+    function checkAnswer() {
+        isWaitingForNext = true;
+        var userAnswer = parseInt(rawInputDigits);
+
+        if (userAnswer === currentAnswer) {
+            answerEl.className = 'answer-display status-correct';
+            answerEl.value = formatNumberWithSpaces(userAnswer) + ' ✔';
+            avatarEl.textContent = KVIZ.avatarSpravne;
+            feedbackEl.textContent = 'Výborně! Máš to správně! 🌟';
+            feedbackEl.className = 'feedback correct';
+
+            seriesCorrectCount++;
+            totalCorrectCount++;
+            scoreEl.textContent = totalCorrectCount;
+
+            setTimeout(nextStep, 2200);
+        } else {
+            answerEl.className = 'answer-display status-incorrect';
+            avatarEl.textContent = KVIZ.avatarPremysli;
+            feedbackEl.textContent = R(
+                'Jejda, asi ses někde uklikla nebo klikla špatně. Zkus se na to podívat ještě jednou. A když si nebudeš vědět rady, zeptej se dědy Peti kliknutím na nápovědu! 😉',
+                'Jejda, asi ses někde uklikl nebo klikl špatně. Zkus se na to podívat ještě jednou. A když si nebudeš vědět rady, zeptej se dědy Peti kliknutím na nápovědu! 😉'
+            );
+            feedbackEl.className = 'feedback incorrect';
+            seriesWrongCount++;
+
+            setTimeout(function() {
+                rawInputDigits = "";
+                answerEl.value = '';
+                answerEl.className = 'answer-display';
+                feedbackEl.textContent = '';
+                avatarEl.textContent = KVIZ.avatarHra;
+                isWaitingForNext = false;
+            }, 7000);
+        }
+    }
+
+    function nextStep() {
+        if (currentProblemNumber < problemsPerSeries) {
+            currentProblemNumber++;
+            generateProblem();
+        } else {
+            gameZone.style.display = 'none';
+            summaryZone.style.display = 'block';
+
+            document.getElementById('final-correct').textContent = seriesCorrectCount;
+            document.getElementById('final-wrong').textContent = seriesWrongCount;
+
+            var gradeEl = document.getElementById('final-grade');
+            if (seriesWrongCount === 0) gradeEl.textContent = '1*';
+            else if (seriesWrongCount <= 2) gradeEl.textContent = '1';
+            else if (seriesWrongCount <= 4) gradeEl.textContent = '2';
+            else if (seriesWrongCount <= 6) gradeEl.textContent = '3';
+            else gradeEl.textContent = '4';
+
+            var actionBtn = document.getElementById('action-button');
+            var questionEl = document.getElementById('restart-question');
+            var summaryTextEl = document.getElementById('summary-text');
+
+            if (currentSeriesNumber < totalSeriesCount) {
+                document.getElementById('summary-title').textContent = "🎉 SÉRIE " + currentSeriesNumber + " DOKONČENA! 🎉";
+                summaryTextEl.innerHTML = "<strong>Šlo ti to skvěle! Jsi obrovská šikulka.</strong><br><br>Teď tě čeká <strong>" + SERIE[currentSeriesNumber].nazev + "</strong> – " + SERIE[currentSeriesNumber].popis + ". Bude to o kousíček těžší, ale postupně, krok za krokem to zvládneš. A nápověda je pořád po ruce. 💡";
+                questionEl.textContent = 'Pustíme se do další série?';
+                actionBtn.textContent = 'Jdu na těžší úroveň! 🚀';
+                actionBtn.setAttribute('onclick', 'nextSeries()');
+            } else {
+                document.getElementById('summary-title').textContent = '🏆 ' + R('DOKONČILA', 'DOKONČIL') + ' JSI CELOU HRU! 🏆';
+                document.getElementById('summary-avatar').textContent = KVIZ.avatarKonec;
+                summaryTextEl.innerHTML = "<strong>Geniální výkon, " + KVIZ.jmeno5pad + "! " + R("Zvládla", "Zvládl") + " jsi počítání do sta, celou násobilku i slovní úlohy.</strong><br><br>Do třetí třídy můžeš nastoupit úplně v klidu – " + KVIZ.strejda + " i Stitch jsou na tebe strašně pyšní! 🥰";
+                questionEl.textContent = 'Chceš si zahrát celou hru úplně od začátku?';
+                actionBtn.textContent = 'Hrát celou hru znovu! 🔄';
+                actionBtn.setAttribute('onclick', 'resetWholeGame()');
+            }
+        }
+    }
+
+    function nextSeries() {
+        currentSeriesNumber++;
+        currentProblemNumber = 1;
+        seriesCorrectCount = 0;
+        seriesWrongCount = 0;
+
+        summaryZone.style.display = 'none';
+        gameZone.style.display = 'block';
+        generateProblem();
+    }
+
+    function resetWholeGame() {
+        currentSeriesNumber = 1;
+        currentProblemNumber = 1;
+        totalCorrectCount = 0;
+        seriesCorrectCount = 0;
+        seriesWrongCount = 0;
+        scoreEl.textContent = '0';
+
+        document.getElementById('summary-title').textContent = '🎉 Skvělá práce! 🎉';
+        document.getElementById('summary-avatar').textContent = KVIZ.avatarHra;
+
+        summaryZone.style.display = 'none';
+        gameZone.style.display = 'block';
+        generateProblem();
+    }
+    </script>
+
+</body>
+</html>
