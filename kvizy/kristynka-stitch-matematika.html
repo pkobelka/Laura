@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Matematika pro Kristýnku – kvíz se strejdou Peťou</title>
+    <title>Stitchova matematika pro Kristýnku</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -362,21 +362,22 @@
         // Krátká verze do nápověd – "Děda Peťa říká: ..."
         strejdaKratce: "Děda Peťa",
 
-        // Emoji avataři pro jednotlivé situace (klidně změň podle toho, co má ráda)
-        avatarUvod:    "🦄🌈✨",
-        avatarHra:     "🦄✏️",
-        avatarSpravne: "🦄🥳🌟",
-        avatarPremysli:"🦄🤔",
-        avatarKonec:   "🦄👑🥇🎉⭐",
+        // Emoji avataři pro jednotlivé situace (Stitch = 👽, klidně změň)
+        avatarUvod:    "👽💙🌺",
+        avatarHra:     "👽✏️",
+        avatarSpravne: "👽🥳🌟",
+        avatarPremysli:"👽🤔",
+        avatarKonec:   "👽👑🥇🎉⭐",
 
         // Úvodní text (HTML povoleno, <br> = odřádkování)
         uvodniText:
-            "Tak co, těšíš se do třetí třídy? 😊 STREJDA ti připravil pět sérií příkladů, " +
+            "Tak co, těšíš se do třetí třídy? 😊 STREJDA a Stitch ti připravili pět sérií příkladů, " +
             "ať máš hlavičku v pohotovosti." +
             "<br><br>" +
             "Začneme rozcvičkou do dvaceti, pak si dáme počítání do sta, " +
             "celou násobilku a na konec opravdové slovní úlohy. " +
-            "Kdykoliv si nebudeš vědět rady, klikni na nápovědu – poradím ti trik. 💡",
+            "Kdykoliv si nebudeš vědět rady, klikni na nápovědu – poradím ti trik. " +
+            "A Stitch drží palce. 💙",
     };
 
     /* =====================================================================
@@ -627,8 +628,8 @@
             var sacku = nahodne(3, 8), bonbonu = nahodne(3, 9);
             return {
                 slovni: true,
-                zadani: "V jednom sáčku je " + bonbonu + " bonbónů. Kolik bonbónů je " + vVe(sacku) + " " +
-                        sacku + " sáčcích?",
+                zadani: "Stitch si schoval bonbóny do sáčků – v jednom je " + bonbonu +
+                        " bonbónů. Kolik bonbónů má " + vVe(sacku) + " " + sacku + " sáčcích?",
                 vysledek: sacku * bonbonu,
                 napoveda: "<strong>" + S + " říká:</strong> Stejné hromádky několikrát za sebou – to je násobení. " +
                           "Počítej " + sacku + " × " + bonbonu + "."
@@ -650,8 +651,8 @@
             return {
                 slovni: true,
                 // 2 až 4 „děti", od 5 výš „dětí" – ať to zní česky
-                zadani: "Na stole je " + celkem + " jablek a " + J + " je má rozdělit spravedlivě mezi " + deti +
-                        (deti < 5 ? " děti" : " dětí") + ". Kolik jablek dostane každé dítě?",
+                zadani: "Stitch přinesl " + celkem + " kokosů a " + J + " je má rozdělit spravedlivě mezi " +
+                        deti + (deti < 5 ? " děti" : " dětí") + ". Kolik kokosů dostane každé dítě?",
                 vysledek: kazde,
                 napoveda: napovedaDeleni(celkem, deti, kazde, S) + " Spravedlivě rozdělit = dělení."
             };
@@ -685,7 +686,8 @@
         var cena = vyber([15, 20, 25, 30].filter(function (c) { return kusu * c <= 90; }));
         return {
             slovni: true,
-            zadani: J + " má 100 Kč a koupí " + kusu + " zmrzliny po " + cena + " Kč. Kolik korun jí zbude?",
+            zadani: J + " má 100 Kč a koupí " + kusu + " zmrzliny po " + cena +
+                    " Kč – jednu pro sebe, ostatní pro Stitche. Kolik korun jí zbude?",
             vysledek: 100 - kusu * cena,
             napoveda: "<strong>" + S + " říká:</strong> Zase dva kroky. Nejdřív kolik zaplatí: " + kusu + " × " + cena +
                       " = " + (kusu * cena) + " Kč. A pak " + (kusu * cena) + " Kč odečti od stovky."
@@ -804,7 +806,7 @@
             } else {
                 document.getElementById('summary-title').textContent = '🏆 ' + R('DOKONČILA', 'DOKONČIL') + ' JSI CELOU HRU! 🏆';
                 document.getElementById('summary-avatar').textContent = KVIZ.avatarKonec;
-                summaryTextEl.innerHTML = "<strong>Geniální výkon, " + KVIZ.jmeno5pad + "! " + R("Zvládla", "Zvládl") + " jsi počítání do sta, celou násobilku i slovní úlohy.</strong><br><br>Do třetí třídy můžeš nastoupit úplně v klidu – " + KVIZ.strejda + " je na tebe strašně pyšný! 🥰";
+                summaryTextEl.innerHTML = "<strong>Geniální výkon, " + KVIZ.jmeno5pad + "! " + R("Zvládla", "Zvládl") + " jsi počítání do sta, celou násobilku i slovní úlohy.</strong><br><br>Do třetí třídy můžeš nastoupit úplně v klidu – " + KVIZ.strejda + " i Stitch jsou na tebe strašně pyšní! 🥰";
                 questionEl.textContent = 'Chceš si zahrát celou hru úplně od začátku?';
                 actionBtn.textContent = 'Hrát celou hru znovu! 🔄';
                 actionBtn.setAttribute('onclick', 'resetWholeGame()');

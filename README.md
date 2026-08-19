@@ -12,8 +12,8 @@ kvizy/                     # Sem patří jednotlivé kvízy
   _sablona.html                      # Šablona: matematika s klávesnicí (pro děti)
   _sablona-hospodsky-kviz.html       # Šablona: hospodský kvíz se soutěžními režimy
   laura-stitch-matematika.html
-  kristynka-matematika.html          # Matematika pro 3. třídu (5 sérií, roste obtížnost)
-  kristynka-prazdninovy-kviz.html    # Prázdninový vědomostní kvíz pro děti (5 okruhů)
+  kristynka-stitch-matematika.html   # Matematika pro 3. třídu (5 sérií, roste obtížnost)
+  kristynka-prazdninovy-kviz.html    # Prázdninový vědomostní kvíz pro děti (6 okruhů)
   hanum-hospodsky-kviz-01.html       # Hospodský kvíz – 1. rozehřívací díl (jeden průchod)
   hanum-hospodsky-kviz-02.html       # Hospodský kvíz – 2. díl (nové otázky)
 ```
@@ -22,7 +22,7 @@ kvizy/                     # Sem patří jednotlivé kvízy
 
 - **Matematika s klávesnicí** (`_sablona.html`) – dítě píše výsledek na
   číselné klávesnici, série s rostoucí obtížností.
-  - `kristynka-matematika.html` – pro Kristýnku do 3. třídy: pět sérií
+  - `kristynka-stitch-matematika.html` – pro Kristýnku do 3. třídy: pět sérií
     (do 20 → do 100 → násobilka 2, 5, 10 → násobilka 3–9 → slovní úlohy),
     u každého příkladu nápověda s trikem na počítání.
 - **Hospodský kvíz** – výběr z odpovědí A/B/C/D, okruhy, zvuk při správné
@@ -31,9 +31,9 @@ kvizy/                     # Sem patří jednotlivé kvízy
   Existují dvě verze:
   - `hanum-hospodsky-kviz-01.html` (a `-02`) – **rozehřívací díly**: jeden prostý
     průchod s jedním skóre, bez soutěžení.
-  - `kristynka-prazdninovy-kviz.html` – **dětská verze** téhož: 5 okruhů po
-    8 otázkách (zvířata, prázdniny u vody a v horách, vesmír, pohádky, hádanky),
-    jeden průchod a povzbudivé hodnocení na konci.
+  - `kristynka-prazdninovy-kviz.html` – **dětská verze** téhož: 6 okruhů
+    (zvířata, prázdniny u vody a v horách, vesmír, pohádky, Stitch a Havaj,
+    hádanky), jeden průchod a povzbudivé hodnocení na konci.
   - `_sablona-hospodsky-kviz.html` – **soutěžní šablona** se třemi režimy:
     - *Hrát dohromady* – jedno skóre pro partu u stolu.
     - *Soupeřit v týmech* – 2–4 týmy se střídají na jednom mobilu, průběžné
